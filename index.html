@@ -1,1017 +1,2639 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>NFC - Future Coin Miner</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background: #0a0e1a;
-            color: #fff;
-            min-height: 100vh;
-            padding-bottom: 80px;
-        }
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 16px;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid #1a2040;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            background: linear-gradient(135deg, #f7971e, #ffd200);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .logo span {
-            font-size: 12px;
-            -webkit-text-fill-color: #888;
-            display: block;
-        }
-        .user-badge {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #1a2040;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .user-badge i {
-            color: #ffd200;
-        }
-        .card {
-            background: #12182e;
-            border-radius: 16px;
-            padding: 20px;
-            margin: 16px 0;
-            border: 1px solid #1a2040;
-        }
-        .card-title {
-            font-size: 14px;
-            color: #8892b0;
-            margin-bottom: 8px;
-        }
-        .coin-display {
-            font-size: 42px;
-            font-weight: bold;
-            background: linear-gradient(135deg, #f7971e, #ffd200);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .coin-label {
-            font-size: 14px;
-            color: #8892b0;
-        }
-        .btn {
-            background: linear-gradient(135deg, #f7971e, #ffd200);
-            color: #0a0e1a;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 16px;
-            width: 100%;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
-        }
-        .btn:active {
-            transform: scale(0.95);
-        }
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #f7971e;
-            color: #f7971e;
-        }
-        .btn-danger {
-            background: #dc3545;
-            color: #fff;
-        }
-        .btn-success {
-            background: #28a745;
-            color: #fff;
-        }
-        .kyc-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .kyc-approved {
-            background: #28a74533;
-            color: #28a745;
-            border: 1px solid #28a745;
-        }
-        .kyc-pending {
-            background: #dc354533;
-            color: #dc3545;
-            border: 1px solid #dc3545;
-        }
-        .form-group {
-            margin-bottom: 16px;
-        }
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            color: #8892b0;
-            margin-bottom: 4px;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 12px 16px;
-            background: #0a0e1a;
-            border: 1px solid #1a2040;
-            border-radius: 10px;
-            color: #fff;
-            font-size: 16px;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: #f7971e;
-        }
-        .tabs {
-            display: flex;
-            gap: 4px;
-            background: #12182e;
-            padding: 4px;
-            border-radius: 12px;
-            margin: 16px 0;
-        }
-        .tab {
-            flex: 1;
-            padding: 10px;
-            text-align: center;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
-            color: #8892b0;
-        }
-        .tab.active {
-            background: #f7971e;
-            color: #0a0e1a;
-            font-weight: bold;
-        }
-        .user-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #1a2040;
-        }
-        .user-item:last-child {
-            border-bottom: none;
-        }
-        .user-info {
-            display: flex;
-            flex-direction: column;
-        }
-        .user-name {
-            font-weight: bold;
-        }
-        .user-email {
-            font-size: 12px;
-            color: #8892b0;
-        }
-        .user-coins {
-            color: #ffd200;
-            font-weight: bold;
-        }
-        .hidden {
-            display: none !important;
-        }
-        .admin-section {
-            background: #1a2040;
-            padding: 16px;
-            border-radius: 12px;
-            margin: 12px 0;
-        }
-        .admin-input-group {
-            display: flex;
-            gap: 8px;
-            margin: 8px 0;
-        }
-        .admin-input-group input {
-            flex: 1;
-            padding: 10px;
-            background: #0a0e1a;
-            border: 1px solid #2a3060;
-            border-radius: 8px;
-            color: #fff;
-        }
-        .admin-input-group button {
-            padding: 10px 20px;
-            background: #f7971e;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #28a745;
-            color: #fff;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: bold;
-            z-index: 999;
-            display: none;
-            max-width: 90%;
-            text-align: center;
-        }
-        .toast.error {
-            background: #dc3545;
-        }
-        #miningTimer {
-            margin-top: 8px;
-            color: #ffd200;
-            font-size: 14px;
-        }
-        .text-center {
-            text-align: center;
-        }
-        .mt-10 {
-            margin-top: 10px;
-        }
-        .text-muted {
-            color: #8892b0;
-            font-size: 14px;
-        }
-        .cursor-pointer {
-            cursor: pointer;
-            color: #f7971e;
-        }
-        .auth-icon {
-            font-size: 64px;
-            text-align: center;
-        }
-        .gradient-text {
-            background: linear-gradient(135deg, #f7971e, #ffd200);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<title>NFC — Future Coin</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+:root{
+    --bg:#070b14;
+    --card:#111827;
+    --card2:#172033;
+    --border:#263249;
+    --gold:#f5b942;
+    --gold2:#ffd86b;
+    --text:#f5f7fa;
+    --muted:#8e9bb0;
+    --green:#28c76f;
+    --red:#ff4d5e;
+    --blue:#4da3ff;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+}
+
+button,input{
+    font:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+.hidden{
+    display:none!important;
+}
+
+.app{
+    width:100%;
+    max-width:520px;
+    margin:auto;
+    padding:15px;
+    padding-bottom:100px;
+}
+
+/* AUTH */
+
+.auth{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.auth-box{
+    width:100%;
+}
+
+.logo{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.logo-title{
+    font-size:48px;
+    font-weight:900;
+    color:var(--gold);
+    letter-spacing:2px;
+}
+
+.logo-sub{
+    color:var(--muted);
+    margin-top:5px;
+}
+
+.card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:15px;
+    box-shadow:0 8px 30px rgba(0,0,0,.15);
+}
+
+.title{
+    font-size:16px;
+    font-weight:700;
+    margin-bottom:15px;
+}
+
+label{
+    display:block;
+    color:var(--muted);
+    font-size:13px;
+    margin-bottom:7px;
+}
+
+input{
+    width:100%;
+    background:#080d18;
+    border:1px solid var(--border);
+    color:white;
+    border-radius:12px;
+    padding:13px;
+    outline:none;
+    margin-bottom:14px;
+}
+
+input:focus{
+    border-color:var(--gold);
+}
+
+.btn{
+    width:100%;
+    border:0;
+    border-radius:13px;
+    padding:14px;
+    font-weight:700;
+    margin-top:5px;
+    background:linear-gradient(135deg,var(--gold),var(--gold2));
+    color:#111;
+}
+
+.btn:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+
+.btn-outline{
+    background:transparent;
+    border:1px solid var(--gold);
+    color:var(--gold);
+}
+
+.btn-danger{
+    background:var(--red);
+    color:white;
+}
+
+.btn-green{
+    background:var(--green);
+    color:white;
+}
+
+.link{
+    color:var(--gold);
+    cursor:pointer;
+}
+
+.auth-switch{
+    text-align:center;
+    color:var(--muted);
+    font-size:14px;
+    margin-top:16px;
+}
+
+/* HEADER */
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:8px 0 18px;
+}
+
+.brand{
+    color:var(--gold);
+    font-size:22px;
+    font-weight:900;
+}
+
+.brand small{
+    display:block;
+    color:var(--muted);
+    font-size:10px;
+    font-weight:normal;
+    margin-top:2px;
+}
+
+.user-button{
+    background:var(--card);
+    border:1px solid var(--border);
+    padding:8px 12px;
+    border-radius:20px;
+    color:white;
+    font-size:13px;
+}
+
+/* BALANCE */
+
+.balance-card{
+    text-align:center;
+    background:
+        radial-gradient(circle at top right,rgba(245,185,66,.15),transparent 45%),
+        var(--card);
+}
+
+.balance-label{
+    color:var(--muted);
+    font-size:13px;
+}
+
+.balance{
+    font-size:46px;
+    font-weight:900;
+    color:var(--gold);
+    margin:8px 0;
+    word-break:break-word;
+}
+
+.coin{
+    color:var(--muted);
+    font-size:13px;
+}
+
+/* KYC */
+
+.badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:7px 14px;
+    border-radius:30px;
+    font-size:12px;
+    font-weight:700;
+    margin-top:15px;
+}
+
+.badge-green{
+    color:#5cff9d;
+    background:rgba(40,199,111,.12);
+    border:1px solid rgba(40,199,111,.4);
+}
+
+.badge-red{
+    color:#ff7b88;
+    background:rgba(255,77,94,.1);
+    border:1px solid rgba(255,77,94,.35);
+}
+
+.badge-yellow{
+    color:#ffd86b;
+    background:rgba(245,185,66,.1);
+    border:1px solid rgba(245,185,66,.35);
+}
+
+/* MINING */
+
+.mine-box{
+    text-align:center;
+}
+
+.mine-amount{
+    font-size:28px;
+    color:var(--gold);
+    font-weight:900;
+}
+
+.timer{
+    color:var(--muted);
+    margin-top:12px;
+    font-size:13px;
+}
+
+.ready{
+    color:var(--green);
+}
+
+/* NAV */
+
+.nav{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:5px;
+    background:var(--card);
+    border:1px solid var(--border);
+    padding:5px;
+    border-radius:16px;
+    margin-bottom:15px;
+}
+
+.nav button{
+    border:0;
+    background:transparent;
+    color:var(--muted);
+    padding:11px 4px;
+    border-radius:11px;
+    font-size:11px;
+}
+
+.nav button.active{
+    background:var(--gold);
+    color:#111;
+    font-weight:700;
+}
+
+/* USERS */
+
+.user{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:13px 0;
+    border-bottom:1px solid var(--border);
+}
+
+.user:last-child{
+    border-bottom:0;
+}
+
+.user-name{
+    font-weight:700;
+}
+
+.user-info{
+    color:var(--muted);
+    font-size:11px;
+    margin-top:4px;
+}
+
+.user-balance{
+    color:var(--gold);
+    font-weight:700;
+    font-size:13px;
+}
+
+/* ADMIN */
+
+.admin-title{
+    color:var(--gold);
+    font-weight:800;
+    margin-bottom:15px;
+}
+
+.admin-user{
+    padding:14px 0;
+    border-bottom:1px solid var(--border);
+}
+
+.admin-user:last-child{
+    border-bottom:0;
+}
+
+.admin-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+    margin-top:8px;
+}
+
+.small-btn{
+    border:0;
+    border-radius:9px;
+    padding:9px;
+    font-size:12px;
+    font-weight:700;
+}
+
+.small-green{
+    background:var(--green);
+    color:white;
+}
+
+.small-red{
+    background:var(--red);
+    color:white;
+}
+
+.small-gold{
+    background:var(--gold);
+    color:#111;
+}
+
+/* TOAST */
+
+.toast{
+    position:fixed;
+    left:50%;
+    bottom:25px;
+    transform:translateX(-50%);
+    background:#1e293b;
+    color:white;
+    padding:13px 18px;
+    border-radius:12px;
+    z-index:9999;
+    display:none;
+    width:max-content;
+    max-width:90%;
+    font-size:13px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+
+.toast.show{
+    display:block;
+}
+
+.toast.error{
+    background:#8e1d2a;
+}
+
+/* DESKTOP */
+
+@media(min-width:700px){
+    .app{
+        padding-top:30px;
+    }
+}
+</style>
 </head>
+
 <body>
 
-    <div class="container" id="app">
-        <!-- Toast -->
-        <div class="toast" id="toast"></div>
+<div id="toast" class="toast"></div>
 
-        <!-- Auth Screen -->
-        <div id="authScreen">
-            <div class="text-center" style="padding:40px 0;">
-                <div class="auth-icon">⛏️</div>
-                <h1 class="gradient-text">NFC</h1>
-                <p class="text-muted">Future Coin Miner</p>
-            </div>
+<!-- =========================================================
+     AUTH
+========================================================= -->
 
-            <div class="card">
-                <div id="loginForm">
-                    <div class="form-group">
-                        <label>Username or Email</label>
-                        <input type="text" id="loginUsername" placeholder="Enter username or email" />
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="loginPassword" placeholder="Enter password" />
-                    </div>
-                    <button class="btn" onclick="login()">Login</button>
-                    <p class="text-center mt-10 text-muted">
-                        Don't have an account? <span class="cursor-pointer" onclick="showRegister()">Register</span>
-                    </p>
-                </div>
+<section id="authScreen" class="auth">
+<div class="app auth-box">
 
-                <div id="registerForm" class="hidden">
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" id="regFullName" placeholder="John Doe" />
-                    </div>
-                    <div class="form-group">
-                        <label>Username</label>
-                        <input type="text" id="regUsername" placeholder="johndoe" />
-                    </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="regEmail" placeholder="john@example.com" />
-                    </div>
-                    <div class="form-group">
-                        <label>Phone</label>
-                        <input type="tel" id="regPhone" placeholder="+1234567890" />
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="regPassword" placeholder="Create password" />
-                    </div>
-                    <button class="btn" onclick="register()">Create Account</button>
-                    <p class="text-center mt-10 text-muted">
-                        Already have an account? <span class="cursor-pointer" onclick="showLogin()">Login</span>
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main App -->
-        <div id="mainApp" class="hidden">
-            <!-- Header -->
-            <div class="header">
-                <div>
-                    <div class="logo">⛏️ NFC</div>
-                    <span style="font-size:10px;color:#8892b0;">Future Coin</span>
-                </div>
-                <div class="user-badge" onclick="logout()">
-                    <i class="fas fa-user"></i>
-                    <span id="headerUsername">User</span>
-                    <i class="fas fa-sign-out-alt" style="color:#8892b0;font-size:14px;"></i>
-                </div>
-            </div>
-
-            <!-- Balance -->
-            <div class="card">
-                <div class="card-title">💰 Your Balance</div>
-                <div class="coin-display" id="userBalance">0.00</div>
-                <div class="coin-label">NFC Coins</div>
-                <div style="margin-top:12px;">
-                    <span id="kycStatusBadge" class="kyc-status kyc-pending">
-                        <i class="fas fa-times-circle"></i> No KYC
-                    </span>
-                </div>
-                <button class="btn btn-outline mt-10" onclick="requestKYC()">
-                    <i class="fas fa-id-card"></i> Request KYC
-                </button>
-            </div>
-
-            <!-- Mining -->
-            <div class="card">
-                <div class="card-title">⛏️ Mining</div>
-                <p class="text-muted">0.25 NFC every 24 hours</p>
-                <button class="btn" id="mineBtn" onclick="startMining()">
-                    <i class="fas fa-hammer"></i> Start Mining
-                </button>
-                <div id="miningTimer"></div>
-            </div>
-
-            <!-- Tabs -->
-            <div class="tabs">
-                <div class="tab active" onclick="switchTab('transfer')">Transfer</div>
-                <div class="tab" onclick="switchTab('users')">Users</div>
-                <div class="tab hidden" onclick="switchTab('admin')" id="adminTab">Admin</div>
-            </div>
-
-            <!-- Transfer -->
-            <div id="transferTab">
-                <div class="card">
-                    <div class="card-title">Send NFC Coins</div>
-                    <div class="form-group">
-                        <label>Recipient Username</label>
-                        <input type="text" id="recipientUsername" placeholder="Enter username" />
-                    </div>
-                    <div class="form-group">
-                        <label>Amount</label>
-                        <input type="number" id="transferAmount" placeholder="0.00" step="0.01" />
-                    </div>
-                    <button class="btn" onclick="transferCoins()">
-                        <i class="fas fa-paper-plane"></i> Send Coins
-                    </button>
-                </div>
-            </div>
-
-            <!-- Users -->
-            <div id="usersTab" class="hidden">
-                <div class="card">
-                    <div class="card-title">👥 All Users</div>
-                    <div id="usersList"></div>
-                </div>
-            </div>
-
-            <!-- Admin -->
-            <div id="adminTabContent" class="hidden">
-                <div class="admin-section">
-                    <h4 style="color:#f7971e;">🛡️ Admin Panel</h4>
-
-                    <div style="margin:12px 0;">
-                        <label style="font-size:13px;color:#8892b0;">Add Coins to User</label>
-                        <div class="admin-input-group">
-                            <input type="text" id="adminUser" placeholder="Username" />
-                            <input type="number" id="adminCoins" placeholder="Amount" step="0.01" />
-                            <button onclick="adminAddCoins()">Add</button>
-                        </div>
-                    </div>
-
-                    <div style="margin:12px 0;">
-                        <label style="font-size:13px;color:#8892b0;">Suspend User</label>
-                        <div class="admin-input-group">
-                            <input type="text" id="suspendUser" placeholder="Username" />
-                            <button onclick="adminSuspendUser()" style="background:#dc3545;color:#fff;">Suspend</button>
-                        </div>
-                    </div>
-
-                    <div style="margin:12px 0;">
-                        <label style="font-size:13px;color:#8892b0;">Approve KYC</label>
-                        <div class="admin-input-group">
-                            <input type="text" id="kycApproveUser" placeholder="Username" />
-                            <button onclick="adminApproveKYC()" style="background:#28a745;color:#fff;">Approve</button>
-                        </div>
-                    </div>
-
-                    <div id="kycRequestsList" style="margin-top:12px;"></div>
-                </div>
-            </div>
-        </div>
+    <div class="logo">
+        <div class="logo-title">NFC</div>
+        <div class="logo-sub">Future Coin</div>
     </div>
 
-    <!-- Supabase Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- ALL JAVASCRIPT - SINGLE COPY ONLY -->
-    <script>
-        // ============ SUPABASE CONFIG ============
-        const SUPABASE_URL = 'https://ouwlkubrbddalkaqpzsl.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_tfj2iKmoe7LwbrmSrp0lWg_Gi8asD4a';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <!-- LOGIN -->
 
-        // ============ STATE ============
-        let currentUser = null;
-        let miningInterval = null;
+    <div id="loginBox" class="card">
 
-        // ============ AUTH ============
-        function showRegister() {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('registerForm').classList.remove('hidden');
+        <div class="title">Login to NFC</div>
+
+        <label>Email</label>
+        <input
+            id="loginEmail"
+            type="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+        >
+
+        <label>Password</label>
+        <input
+            id="loginPassword"
+            type="password"
+            placeholder="Password"
+            autocomplete="current-password"
+        >
+
+        <button id="loginBtn" class="btn" onclick="login()">
+            Login
+        </button>
+
+        <div class="auth-switch">
+            Don't have an account?
+            <span class="link" onclick="showRegister()">Create Account</span>
+        </div>
+
+    </div>
+
+
+    <!-- REGISTER -->
+
+    <div id="registerBox" class="card hidden">
+
+        <div class="title">Create NFC Account</div>
+
+        <label>Full Name</label>
+        <input
+            id="regName"
+            type="text"
+            placeholder="Your full name"
+            autocomplete="name"
+        >
+
+        <label>Username</label>
+        <input
+            id="regUsername"
+            type="text"
+            placeholder="Choose username"
+            autocomplete="username"
+        >
+
+        <label>Email</label>
+        <input
+            id="regEmail"
+            type="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+        >
+
+        <label>Phone</label>
+        <input
+            id="regPhone"
+            type="tel"
+            placeholder="+92..."
+            autocomplete="tel"
+        >
+
+        <label>Password</label>
+        <input
+            id="regPassword"
+            type="password"
+            placeholder="Minimum 6 characters"
+            autocomplete="new-password"
+        >
+
+        <button id="registerBtn" class="btn" onclick="register()">
+            Create Account
+        </button>
+
+        <div class="auth-switch">
+            Already have an account?
+            <span class="link" onclick="showLogin()">Login</span>
+        </div>
+
+    </div>
+
+</div>
+</section>
+
+
+<!-- =========================================================
+     MAIN APP
+========================================================= -->
+
+<section id="mainApp" class="hidden">
+
+<div class="app">
+
+    <header class="header">
+
+        <div class="brand">
+            NFC
+            <small>Future Coin</small>
+        </div>
+
+        <button class="user-button" onclick="logout()">
+            <span id="headerUsername">User</span>
+            · Logout
+        </button>
+
+    </header>
+
+
+    <!-- BALANCE -->
+
+    <div class="card balance-card">
+
+        <div class="balance-label">
+            Available Balance
+        </div>
+
+        <div id="balance" class="balance">
+            0.00000000
+        </div>
+
+        <div class="coin">
+            NFC
+        </div>
+
+        <div id="kycBadge"></div>
+
+        <button
+            id="kycButton"
+            class="btn btn-outline"
+            onclick="submitKYC()"
+        >
+            Request KYC
+        </button>
+
+    </div>
+
+
+    <!-- MINING -->
+
+    <div class="card mine-box">
+
+        <div class="title">
+            NFC Mining
+        </div>
+
+        <div class="mine-amount">
+            +0.25 NFC
+        </div>
+
+        <div class="coin">
+            Every 24 hours
+        </div>
+
+        <button
+            id="mineButton"
+            class="btn"
+            onclick="mine()"
+        >
+            Start Mining
+        </button>
+
+        <div id="miningTimer" class="timer">
+            Checking mining status...
+        </div>
+
+    </div>
+
+
+    <!-- NAVIGATION -->
+
+    <div class="nav">
+
+        <button
+            id="navTransfer"
+            class="active"
+            onclick="openTab('transfer')"
+        >
+            Transfer
+        </button>
+
+        <button
+            id="navUsers"
+            onclick="openTab('users')"
+        >
+            Users
+        </button>
+
+        <button
+            id="navHistory"
+            onclick="openTab('history')"
+        >
+            History
+        </button>
+
+        <button
+            id="navAdmin"
+            class="hidden"
+            onclick="openTab('admin')"
+        >
+            Admin
+        </button>
+
+    </div>
+
+
+    <!-- TRANSFER TAB -->
+
+    <div id="transferTab">
+
+        <div class="card">
+
+            <div class="title">
+                Send NFC
+            </div>
+
+            <label>Recipient Username</label>
+
+            <input
+                id="recipient"
+                type="text"
+                placeholder="Username"
+            >
+
+            <label>Amount</label>
+
+            <input
+                id="amount"
+                type="number"
+                min="0"
+                step="0.00000001"
+                placeholder="0.00"
+            >
+
+            <button
+                id="transferButton"
+                class="btn"
+                onclick="transfer()"
+            >
+                Send NFC
+            </button>
+
+            <p
+                id="transferNotice"
+                class="timer"
+            >
+                KYC approval is required to transfer NFC.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- USERS TAB -->
+
+    <div id="usersTab" class="hidden">
+
+        <div class="card">
+
+            <div class="title">
+                NFC Users
+            </div>
+
+            <div id="usersList">
+                Loading users...
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- HISTORY TAB -->
+
+    <div id="historyTab" class="hidden">
+
+        <div class="card">
+
+            <div class="title">
+                Transaction History
+            </div>
+
+            <div id="historyList">
+                Loading...
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ADMIN TAB -->
+
+    <div id="adminTab" class="hidden">
+
+        <div class="card">
+
+            <div class="admin-title">
+                NFC Administration
+            </div>
+
+            <label>Select User</label>
+
+            <select
+                id="adminUserSelect"
+                style="
+                width:100%;
+                padding:13px;
+                border-radius:12px;
+                background:#080d18;
+                color:white;
+                border:1px solid #263249;
+                margin-bottom:14px;
+                "
+            >
+                <option value="">Select user</option>
+            </select>
+
+            <label>NFC Amount</label>
+
+            <input
+                id="adminAmount"
+                type="number"
+                step="0.00000001"
+                placeholder="Amount"
+            >
+
+            <label>Description</label>
+
+            <input
+                id="adminDescription"
+                type="text"
+                placeholder="Admin credit"
+            >
+
+            <button
+                class="btn"
+                onclick="adminAddCoins()"
+            >
+                Add NFC
+            </button>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="admin-title">
+                KYC Requests
+            </div>
+
+            <div id="kycRequests">
+                Loading...
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="admin-title">
+                User Management
+            </div>
+
+            <div id="adminUsers">
+                Loading...
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</section>
+
+
+<script>
+
+/* =========================================================
+   SUPABASE CONFIG
+========================================================= */
+
+const SUPABASE_URL =
+    'https://ouwlkubrbddalkaqpzsl.supabase.co';
+
+const SUPABASE_PUBLISHABLE_KEY =
+    'sb_publishable_tfj2iKmoe7LwbrmSrp0lWg_Gi8asD4a';
+
+const db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+);
+
+
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+
+let currentUser = null;
+let profile = null;
+let miningData = null;
+let timerInterval = null;
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+function toast(message, error=false){
+
+    const el = document.getElementById('toast');
+
+    el.textContent = message;
+
+    el.className =
+        'toast show' +
+        (error ? ' error' : '');
+
+    clearTimeout(window.toastTimer);
+
+    window.toastTimer =
+        setTimeout(() => {
+            el.className = 'toast';
+        }, 3500);
+}
+
+
+/* =========================================================
+   AUTH UI
+========================================================= */
+
+function showRegister(){
+
+    document
+        .getElementById('loginBox')
+        .classList.add('hidden');
+
+    document
+        .getElementById('registerBox')
+        .classList.remove('hidden');
+}
+
+
+function showLogin(){
+
+    document
+        .getElementById('registerBox')
+        .classList.add('hidden');
+
+    document
+        .getElementById('loginBox')
+        .classList.remove('hidden');
+}
+
+
+/* =========================================================
+   REGISTER
+========================================================= */
+
+async function register(){
+
+    const btn =
+        document.getElementById('registerBtn');
+
+    const fullName =
+        document.getElementById('regName').value.trim();
+
+    const username =
+        document.getElementById('regUsername').value.trim().toLowerCase();
+
+    const email =
+        document.getElementById('regEmail').value.trim().toLowerCase();
+
+    const phone =
+        document.getElementById('regPhone').value.trim();
+
+    const password =
+        document.getElementById('regPassword').value;
+
+
+    if(
+        !fullName ||
+        !username ||
+        !email ||
+        !phone ||
+        !password
+    ){
+
+        toast('Please complete all fields.',true);
+        return;
+    }
+
+
+    if(password.length < 6){
+
+        toast('Password must contain at least 6 characters.',true);
+        return;
+    }
+
+
+    if(!/^[a-z0-9_]{3,20}$/.test(username)){
+
+        toast(
+            'Username: 3-20 characters, letters, numbers or underscore.',
+            true
+        );
+
+        return;
+    }
+
+
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+
+    try{
+
+        /*
+         First check username.
+        */
+
+        const {data: existingUsername,error: usernameError}
+            = await db
+            .from('profiles')
+            .select('id')
+            .eq('username',username)
+            .maybeSingle();
+
+
+        if(usernameError){
+
+            console.error(usernameError);
+
         }
 
-        function showLogin() {
-            document.getElementById('registerForm').classList.add('hidden');
-            document.getElementById('loginForm').classList.remove('hidden');
+
+        if(existingUsername){
+
+            toast('Username already exists.',true);
+
+            return;
         }
 
-        async function register() {
-            try {
-                const fullName = document.getElementById('regFullName').value.trim();
-                const username = document.getElementById('regUsername').value.trim();
-                const email = document.getElementById('regEmail').value.trim();
-                const phone = document.getElementById('regPhone').value.trim();
-                const password = document.getElementById('regPassword').value.trim();
 
-                if (!fullName || !username || !email || !phone || !password) {
-                    showToast('Please fill all fields', true);
-                    return;
-                }
+        /*
+         Supabase Authentication
+        */
 
-                const { data: existing } = await supabase
-                    .from('users')
-                    .select('id')
-                    .or(`username.eq.${username},email.eq.${email}`);
+        const {data,error}
+            = await db.auth.signUp({
 
-                if (existing && existing.length > 0) {
-                    showToast('Username or email already taken', true);
-                    return;
-                }
+                email:email,
 
-                const deviceId = localStorage.getItem('deviceId') || 'device_' + Math.random().toString(36).substring(7);
-                localStorage.setItem('deviceId', deviceId);
+                password:password,
 
-                const { data, error } = await supabase
-                    .from('users')
-                    .insert({
-                        username: username,
-                        full_name: fullName,
-                        email: email,
-                        phone: phone,
-                        password: password,
-                        device_id: deviceId,
-                        coins: 0,
-                        kyc_approved: false,
-                        suspended: false
-                    })
-                    .select()
-                    .single();
-
-                if (error) {
-                    showToast('Registration error: ' + error.message, true);
-                    return;
-                }
-
-                showToast('Account created! Please login.');
-                showLogin();
-                document.getElementById('loginUsername').value = username;
-                document.getElementById('loginPassword').value = password;
-            } catch (err) {
-                showToast('Error: ' + err.message, true);
-            }
-        }
-
-        async function login() {
-            try {
-                const username = document.getElementById('loginUsername').value.trim();
-                const password = document.getElementById('loginPassword').value.trim();
-
-                if (!username || !password) {
-                    showToast('Please fill all fields', true);
-                    return;
-                }
-
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .or(`username.eq.${username},email.eq.${username}`)
-                    .eq('password', password)
-                    .single();
-
-                if (error || !data) {
-                    showToast('Invalid credentials', true);
-                    return;
-                }
-
-                if (data.suspended) {
-                    showToast('Account suspended', true);
-                    return;
-                }
-
-                currentUser = data;
-                localStorage.setItem('nfc_user', JSON.stringify(data));
-                renderApp();
-            } catch (err) {
-                showToast('Login error: ' + err.message, true);
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('nfc_user');
-            currentUser = null;
-            document.getElementById('mainApp').classList.add('hidden');
-            document.getElementById('authScreen').classList.remove('hidden');
-            if (miningInterval) clearInterval(miningInterval);
-            showToast('Logged out');
-        }
-
-        // ============ RENDER ============
-        function renderApp() {
-            document.getElementById('authScreen').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('headerUsername').textContent = currentUser.username;
-            document.getElementById('userBalance').textContent = parseFloat(currentUser.coins || 0).toFixed(2);
-
-            const badge = document.getElementById('kycStatusBadge');
-            if (currentUser.kyc_approved) {
-                badge.className = 'kyc-status kyc-approved';
-                badge.innerHTML = '<i class="fas fa-check-circle"></i> KYC Approved';
-            } else {
-                badge.className = 'kyc-status kyc-pending';
-                badge.innerHTML = '<i class="fas fa-times-circle"></i> No KYC';
-            }
-
-            // Show admin tab for username 'admin'
-            const isAdmin = currentUser.username === 'admin';
-            document.getElementById('adminTab').classList.toggle('hidden', !isAdmin);
-
-            checkMiningStatus();
-            loadUsers();
-            loadKYCRequests();
-        }
-
-        // ============ MINING ============
-        async function startMining() {
-            try {
-                if (miningInterval) {
-                    showToast('Mining already in progress', true);
-                    return;
-                }
-
-                const now = Date.now();
-                const lastMine = localStorage.getItem('lastMine_' + currentUser.id);
-
-                if (lastMine) {
-                    const elapsed = (now - parseInt(lastMine)) / (1000 * 60 * 60);
-                    if (elapsed < 24) {
-                        const remaining = 24 - elapsed;
-                        showToast(`Next mine in ${remaining.toFixed(1)} hours`, true);
-                        return;
+                options:{
+                    data:{
+                        username:username,
+                        full_name:fullName,
+                        phone:phone
                     }
                 }
 
-                const newCoins = parseFloat(currentUser.coins || 0) + 0.25;
-                const { error } = await supabase
-                    .from('users')
-                    .update({ coins: newCoins })
-                    .eq('id', currentUser.id);
+            });
 
-                if (error) {
-                    showToast('Mining error: ' + error.message, true);
-                    return;
-                }
 
-                currentUser.coins = newCoins;
-                localStorage.setItem('lastMine_' + currentUser.id, String(now));
-                localStorage.setItem('nfc_user', JSON.stringify(currentUser));
-                document.getElementById('userBalance').textContent = newCoins.toFixed(2);
+        if(error){
 
-                await supabase.from('transactions').insert({
-                    user_id: currentUser.id,
-                    sender_id: currentUser.id,
-                    amount: 0.25,
-                    type: 'mining'
-                });
+            toast(error.message,true);
+            return;
+        }
 
-                showToast('⛏️ Mined 0.25 NFC!');
-                startMiningCountdown();
-            } catch (err) {
-                showToast('Error: ' + err.message, true);
+
+        /*
+         If email confirmation is enabled,
+         user must confirm email.
+        */
+
+        if(!data.session){
+
+            toast(
+                'Account created. Please verify your email, then login.'
+            );
+
+            showLogin();
+
+        }else{
+
+            toast('Account created successfully.');
+
+            await loadCurrentUser();
+
+        }
+
+
+    }catch(error){
+
+        console.error(error);
+
+        toast(error.message || 'Registration failed.',true);
+
+    }finally{
+
+        btn.disabled=false;
+        btn.textContent='Create Account';
+
+    }
+
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+async function login(){
+
+    const btn =
+        document.getElementById('loginBtn');
+
+    const email =
+        document.getElementById('loginEmail').value.trim();
+
+    const password =
+        document.getElementById('loginPassword').value;
+
+
+    if(!email || !password){
+
+        toast('Enter email and password.',true);
+        return;
+    }
+
+
+    btn.disabled=true;
+    btn.textContent='Logging in...';
+
+
+    try{
+
+        const {data,error}
+            = await db.auth.signInWithPassword({
+
+                email:email,
+                password:password
+
+            });
+
+
+        if(error){
+
+            toast(error.message,true);
+            return;
+        }
+
+
+        currentUser=data.user;
+
+        await loadCurrentUser();
+
+
+    }catch(error){
+
+        console.error(error);
+
+        toast(error.message || 'Login failed.',true);
+
+    }finally{
+
+        btn.disabled=false;
+        btn.textContent='Login';
+
+    }
+
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+async function logout(){
+
+    if(timerInterval){
+
+        clearInterval(timerInterval);
+        timerInterval=null;
+
+    }
+
+
+    await db.auth.signOut();
+
+    currentUser=null;
+    profile=null;
+
+    document
+        .getElementById('mainApp')
+        .classList.add('hidden');
+
+    document
+        .getElementById('authScreen')
+        .classList.remove('hidden');
+
+}
+
+
+/* =========================================================
+   LOAD PROFILE
+========================================================= */
+
+async function loadCurrentUser(){
+
+    if(!currentUser){
+
+        const {
+            data:{user}
+        } = await db.auth.getUser();
+
+        currentUser=user;
+
+    }
+
+
+    if(!currentUser){
+
+        showLogin();
+        return;
+    }
+
+
+    const {data,error}
+        = await db.rpc('get_my_profile');
+
+
+    if(error){
+
+        console.error(error);
+
+        toast(
+            'Profile could not be loaded: '+error.message,
+            true
+        );
+
+        return;
+    }
+
+
+    profile=data;
+
+
+    if(profile.suspended){
+
+        toast('Your account has been suspended.',true);
+
+        await logout();
+
+        return;
+    }
+
+
+    renderApp();
+
+}
+
+
+/* =========================================================
+   RENDER APP
+========================================================= */
+
+function renderApp(){
+
+    document
+        .getElementById('authScreen')
+        .classList.add('hidden');
+
+    document
+        .getElementById('mainApp')
+        .classList.remove('hidden');
+
+
+    document
+        .getElementById('headerUsername')
+        .textContent =
+        profile.username;
+
+
+    document
+        .getElementById('balance')
+        .textContent =
+        formatNumber(profile.balance);
+
+
+    renderKYC();
+
+
+    const isAdmin =
+        profile.role === 'admin';
+
+
+    document
+        .getElementById('navAdmin')
+        .classList.toggle(
+            'hidden',
+            !isAdmin
+        );
+
+
+    checkMining();
+
+    loadUsers();
+
+    loadHistory();
+
+    if(isAdmin){
+
+        loadAdminUsers();
+
+        loadKYCRequests();
+
+    }
+
+}
+
+
+/* =========================================================
+   FORMAT NUMBER
+========================================================= */
+
+function formatNumber(value){
+
+    return Number(value || 0)
+        .toFixed(8)
+        .replace(/\.?0+$/,'');
+
+}
+
+
+/* =========================================================
+   KYC UI
+========================================================= */
+
+function renderKYC(){
+
+    const badge =
+        document.getElementById('kycBadge');
+
+    const button =
+        document.getElementById('kycButton');
+
+    const notice =
+        document.getElementById('transferNotice');
+
+
+    if(profile.kyc_status === 'approved'){
+
+        badge.innerHTML =
+            '<span class="badge badge-green">KYC Approved</span>';
+
+        button.classList.add('hidden');
+
+        notice.textContent =
+            'Your KYC is approved. NFC transfers are enabled.';
+
+        notice.style.color =
+            'var(--green)';
+
+    }
+
+    else if(profile.kyc_status === 'pending'){
+
+        badge.innerHTML =
+            '<span class="badge badge-yellow">KYC Pending</span>';
+
+        button.textContent =
+            'KYC Request Pending';
+
+        button.disabled=true;
+
+        notice.textContent =
+            'Your KYC request is waiting for admin approval.';
+
+        notice.style.color =
+            'var(--gold)';
+
+    }
+
+    else if(profile.kyc_status === 'rejected'){
+
+        badge.innerHTML =
+            '<span class="badge badge-red">KYC Rejected</span>';
+
+        button.textContent =
+            'Request KYC Again';
+
+        button.disabled=false;
+
+        notice.textContent =
+            'KYC approval is required to transfer NFC.';
+
+        notice.style.color =
+            'var(--muted)';
+
+    }
+
+    else{
+
+        badge.innerHTML =
+            '<span class="badge badge-red">No KYC</span>';
+
+        button.textContent =
+            'Request KYC';
+
+        button.disabled=false;
+
+        notice.textContent =
+            'KYC approval is required to transfer NFC.';
+
+        notice.style.color =
+            'var(--muted)';
+
+    }
+
+}
+
+
+/* =========================================================
+   KYC REQUEST
+========================================================= */
+
+async function submitKYC(){
+
+    const button =
+        document.getElementById('kycButton');
+
+    button.disabled=true;
+
+    try{
+
+        const {data,error}
+            = await db.rpc('submit_kyc');
+
+
+        if(error){
+
+            toast(error.message,true);
+            return;
+        }
+
+
+        toast('KYC request submitted.');
+
+        await loadCurrentUser();
+
+    }catch(error){
+
+        toast(error.message,true);
+
+    }finally{
+
+        button.disabled=false;
+
+    }
+
+}
+
+
+/* =========================================================
+   MINING
+========================================================= */
+
+async function mine(){
+
+    if(!profile){
+
+        toast('Please login first.',true);
+        return;
+    }
+
+
+    const button =
+        document.getElementById('mineButton');
+
+
+    button.disabled=true;
+
+
+    try{
+
+        /*
+         Check existing session first.
+        */
+
+        await checkMining();
+
+
+        if(miningData && miningData.active){
+
+            toast('Mining is already active.',true);
+            return;
+        }
+
+
+        const {data,error}
+            = await db.rpc('start_mining');
+
+
+        if(error){
+
+            toast(error.message,true);
+            return;
+        }
+
+
+        toast('Mining started. 0.25 NFC will be available after 24 hours.');
+
+        await checkMining();
+
+
+    }catch(error){
+
+        console.error(error);
+
+        toast(error.message,true);
+
+    }finally{
+
+        button.disabled=false;
+
+    }
+
+}
+
+
+/* =========================================================
+   CHECK MINING
+========================================================= */
+
+async function checkMining(){
+
+    try{
+
+        const {data,error}
+            = await db.rpc('get_active_mining');
+
+
+        if(error){
+
+            console.error(error);
+
+            return;
+        }
+
+
+        miningData=data;
+
+
+        const button =
+            document.getElementById('mineButton');
+
+        const timer =
+            document.getElementById('miningTimer');
+
+
+        if(!data || !data.active){
+
+            button.disabled=false;
+
+            button.textContent='Start Mining';
+
+            timer.textContent=
+                'Ready to start mining +0.25 NFC.';
+
+            timer.className='timer ready';
+
+            if(timerInterval){
+
+                clearInterval(timerInterval);
+                timerInterval=null;
+
             }
+
+            return;
         }
 
-        function startMiningCountdown() {
-            if (miningInterval) clearInterval(miningInterval);
-            miningInterval = setInterval(() => {
-                const lastMine = localStorage.getItem('lastMine_' + currentUser.id);
-                if (!lastMine) {
-                    clearInterval(miningInterval);
-                    miningInterval = null;
-                    return;
-                }
-                const elapsed = (Date.now() - parseInt(lastMine)) / (1000 * 60 * 60);
-                if (elapsed >= 24) {
-                    document.getElementById('miningTimer').textContent = '✅ Ready to mine!';
-                    clearInterval(miningInterval);
-                    miningInterval = null;
-                } else {
-                    const remaining = 24 - elapsed;
-                    const hours = Math.floor(remaining);
-                    const minutes = Math.floor((remaining - hours) * 60);
-                    document.getElementById('miningTimer').textContent =
-                        `⏳ Next mine in ${hours}h ${minutes}m`;
-                }
-            }, 60000);
+
+        /*
+         Check whether 24 hours are completed.
+        */
+
+        const end =
+            new Date(data.complete_after).getTime();
+
+
+        if(Date.now() >= end){
+
+            button.disabled=false;
+
+            button.textContent='Claim 0.25 NFC';
+
+            timer.textContent=
+                '24 hours completed. Claim your reward.';
+
+            timer.className='timer ready';
+
+            /*
+             We change button behavior dynamically.
+            */
+
+            button.onclick=completeMining;
+
+            return;
+
         }
 
-        function checkMiningStatus() {
-            const lastMine = localStorage.getItem('lastMine_' + currentUser.id);
-            if (lastMine) {
-                const elapsed = (Date.now() - parseInt(lastMine)) / (1000 * 60 * 60);
-                if (elapsed >= 24) {
-                    document.getElementById('miningTimer').textContent = '✅ Ready to mine!';
-                } else {
-                    const remaining = 24 - elapsed;
-                    const hours = Math.floor(remaining);
-                    const minutes = Math.floor((remaining - hours) * 60);
-                    document.getElementById('miningTimer').textContent =
-                        `⏳ Next mine in ${hours}h ${minutes}m`;
-                    startMiningCountdown();
-                }
-            } else {
-                document.getElementById('miningTimer').textContent = '⏳ Ready to mine!';
-            }
+
+        button.disabled=true;
+
+        button.textContent='Mining...';
+
+        button.onclick=mine;
+
+        updateMiningTimer(end);
+
+
+        if(timerInterval){
+
+            clearInterval(timerInterval);
+
         }
 
-        // ============ TRANSFER ============
-        async function transferCoins() {
-            try {
-                if (!currentUser.kyc_approved) {
-                    showToast('KYC required to transfer coins', true);
-                    return;
-                }
 
-                const recipient = document.getElementById('recipientUsername').value.trim();
-                const amount = parseFloat(document.getElementById('transferAmount').value);
+        timerInterval =
+            setInterval(
+                () => updateMiningTimer(end),
+                1000
+            );
 
-                if (!recipient || !amount || amount <= 0) {
-                    showToast('Please enter valid recipient and amount', true);
-                    return;
-                }
 
-                if (amount > parseFloat(currentUser.coins)) {
-                    showToast('Insufficient balance', true);
-                    return;
-                }
+    }catch(error){
 
-                const { data: rec, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('username', recipient)
-                    .single();
+        console.error(error);
 
-                if (error || !rec) {
-                    showToast('Recipient not found', true);
-                    return;
-                }
+    }
 
-                if (rec.id === currentUser.id) {
-                    showToast('Cannot send to yourself', true);
-                    return;
-                }
+}
 
-                const newSenderCoins = parseFloat(currentUser.coins) - amount;
-                await supabase
-                    .from('users')
-                    .update({ coins: newSenderCoins })
-                    .eq('id', currentUser.id);
 
-                const newRecCoins = parseFloat(rec.coins || 0) + amount;
-                await supabase
-                    .from('users')
-                    .update({ coins: newRecCoins })
-                    .eq('id', rec.id);
+/* =========================================================
+   MINING TIMER
+========================================================= */
 
-                await supabase.from('transactions').insert({
-                    sender_id: currentUser.id,
-                    receiver_id: rec.id,
-                    amount: amount,
-                    type: 'transfer'
-                });
+function updateMiningTimer(end){
 
-                currentUser.coins = newSenderCoins;
-                localStorage.setItem('nfc_user', JSON.stringify(currentUser));
-                document.getElementById('userBalance').textContent = newSenderCoins.toFixed(2);
-                document.getElementById('recipientUsername').value = '';
-                document.getElementById('transferAmount').value = '';
-                showToast(`✅ Sent ${amount} NFC to ${recipient}`);
-                loadUsers();
-            } catch (err) {
-                showToast('Error: ' + err.message, true);
-            }
+    const timer =
+        document.getElementById('miningTimer');
+
+
+    const remaining =
+        end - Date.now();
+
+
+    if(remaining <= 0){
+
+        timer.textContent =
+            '24 hours completed. Claim your reward.';
+
+        timer.className='timer ready';
+
+        const button =
+            document.getElementById('mineButton');
+
+        button.disabled=false;
+
+        button.textContent='Claim 0.25 NFC';
+
+        button.onclick=completeMining;
+
+        if(timerInterval){
+
+            clearInterval(timerInterval);
+            timerInterval=null;
+
         }
 
-        // ============ USERS LIST ============
-        async function loadUsers() {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('username, full_name, email, coins, kyc_approved, suspended')
-                    .neq('id', currentUser.id)
-                    .order('created_at', { ascending: false });
+        return;
+    }
 
-                if (error) return;
 
-                const list = document.getElementById('usersList');
-                if (!data || data.length === 0) {
-                    list.innerHTML = '<p class="text-muted">No other users found</p>';
-                    return;
+    const totalSeconds =
+        Math.floor(remaining/1000);
+
+
+    const hours =
+        Math.floor(totalSeconds/3600);
+
+    const minutes =
+        Math.floor((totalSeconds%3600)/60);
+
+    const seconds =
+        totalSeconds%60;
+
+
+    timer.textContent =
+        `Mining active · ${hours}h ${minutes}m ${seconds}s remaining`;
+
+}
+
+
+/* =========================================================
+   COMPLETE MINING
+========================================================= */
+
+async function completeMining(){
+
+    const button =
+        document.getElementById('mineButton');
+
+
+    button.disabled=true;
+
+
+    try{
+
+        const {data,error}
+            = await db.rpc('complete_mining');
+
+
+        if(error){
+
+            toast(error.message,true);
+            return;
+        }
+
+
+        toast(
+            `Congratulations! +${formatNumber(data.reward)} NFC`
+        );
+
+
+        await loadCurrentUser();
+
+
+    }catch(error){
+
+        console.error(error);
+
+        toast(error.message,true);
+
+    }finally{
+
+        button.disabled=false;
+
+    }
+
+}
+
+
+/* =========================================================
+   TRANSFER
+========================================================= */
+
+async function transfer(){
+
+    if(profile.kyc_status !== 'approved'){
+
+        toast(
+            'KYC approval is required before transferring NFC.',
+            true
+        );
+
+        return;
+    }
+
+
+    const recipient =
+        document
+        .getElementById('recipient')
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    const amount =
+        Number(
+            document
+            .getElementById('amount')
+            .value
+        );
+
+
+    if(!recipient){
+
+        toast('Enter recipient username.',true);
+        return;
+    }
+
+
+    if(!amount || amount <= 0){
+
+        toast('Enter a valid amount.',true);
+        return;
+    }
+
+
+    if(amount > Number(profile.balance)){
+
+        toast('Insufficient NFC balance.',true);
+        return;
+    }
+
+
+    const button =
+        document.getElementById('transferButton');
+
+
+    button.disabled=true;
+    button.textContent='Sending...';
+
+
+    try{
+
+        /*
+         Transfer is performed atomically
+         inside PostgreSQL.
+        */
+
+        const {data,error}
+            = await db.rpc(
+                'transfer_nfc',
+                {
+                    p_recipient_username:recipient,
+                    p_amount:amount
                 }
+            );
 
-                list.innerHTML = data.map(u => `
-                    <div class="user-item">
-                        <div class="user-info">
-                            <div class="user-name">${u.username}</div>
-                            <div class="user-email">${u.full_name} • ${u.email}</div>
-                            <span style="font-size:11px;color:${u.kyc_approved ? '#28a745' : '#dc3545'}">
-                                ${u.kyc_approved ? '✅ KYC' : '❌ No KYC'}
-                                ${u.suspended ? ' ⛔ Suspended' : ''}
-                            </span>
-                        </div>
-                        <div class="user-coins">${parseFloat(u.coins || 0).toFixed(2)} NFC</div>
+
+        if(error){
+
+            toast(error.message,true);
+            return;
+        }
+
+
+        toast(
+            `${formatNumber(data.amount)} NFC sent to ${data.recipient}.`
+        );
+
+
+        document
+            .getElementById('recipient')
+            .value='';
+
+        document
+            .getElementById('amount')
+            .value='';
+
+
+        await loadCurrentUser();
+
+        loadHistory();
+
+        loadUsers();
+
+
+    }catch(error){
+
+        console.error(error);
+
+        toast(error.message,true);
+
+    }finally{
+
+        button.disabled=false;
+        button.textContent='Send NFC';
+
+    }
+
+}
+
+
+/* =========================================================
+   USERS
+========================================================= */
+
+async function loadUsers(){
+
+    const container =
+        document.getElementById('usersList');
+
+
+    const {data,error}
+        = await db
+        .from('profiles')
+        .select(
+            'id,username,full_name,balance,kyc_status,suspended'
+        )
+        .order('created_at',{ascending:false});
+
+
+    if(error){
+
+        container.innerHTML =
+            '<p class="timer">Unable to load users.</p>';
+
+        return;
+    }
+
+
+    if(!data || data.length===0){
+
+        container.innerHTML =
+            '<p class="timer">No users found.</p>';
+
+        return;
+    }
+
+
+    container.innerHTML =
+        data
+        .map(user => {
+
+            const kyc =
+                user.kyc_status === 'approved'
+                ? 'KYC Approved'
+                : 'No KYC';
+
+
+            return `
+
+            <div class="user">
+
+                <div>
+
+                    <div class="user-name">
+                        ${escapeHtml(user.username)}
                     </div>
-                `).join('');
-            } catch (err) {
-                console.error('Load users error:', err);
-            }
-        }
 
-        // ============ KYC REQUESTS ============
-        async function loadKYCRequests() {
-            try {
-                const { data, error } = await supabase
-                    .from('kyc_requests')
-                    .select('*, users(username, full_name, email)')
-                    .eq('status', 'pending');
-
-                if (error) return;
-
-                const container = document.getElementById('kycRequestsList');
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<p class="text-muted">No pending KYC requests</p>';
-                    return;
-                }
-
-                container.innerHTML = data.map(req => `
-                    <div style="background:#0a0e1a;padding:10px;border-radius:8px;margin:6px 0;">
-                        <strong>${req.users.username}</strong> - ${req.users.email}
-                        <button onclick="adminApproveKYC('${req.users.username}')" 
-                                style="background:#28a745;border:none;color:#fff;padding:4px 12px;border-radius:6px;cursor:pointer;float:right;">
-                            Approve
-                        </button>
+                    <div class="user-info">
+                        ${escapeHtml(user.full_name)}
+                        ·
+                        <span style="color:${
+                            user.kyc_status === 'approved'
+                            ? 'var(--green)'
+                            : 'var(--red)'
+                        }">
+                            ${kyc}
+                        </span>
                     </div>
-                `).join('');
-            } catch (err) {
-                console.error('Load KYC error:', err);
-            }
-        }
 
-        // ============ ADMIN ============
-        async function adminAddCoins() {
-            try {
-                const username = document.getElementById('adminUser').value.trim();
-                const amount = parseFloat(document.getElementById('adminCoins').value);
+                </div>
 
-                if (!username || !amount) {
-                    showToast('Enter username and amount', true);
-                    return;
-                }
+                <div class="user-balance">
+                    ${formatNumber(user.balance)} NFC
+                </div>
 
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('username', username)
-                    .single();
+            </div>
 
-                if (error || !data) {
-                    showToast('User not found', true);
-                    return;
-                }
+            `;
 
-                const newCoins = parseFloat(data.coins || 0) + amount;
-                await supabase
-                    .from('users')
-                    .update({ coins: newCoins })
-                    .eq('id', data.id);
+        })
+        .join('');
 
-                await supabase.from('transactions').insert({
-                    user_id: data.id,
-                    sender_id: currentUser.id,
-                    amount: amount,
-                    type: 'admin'
-                });
+}
 
-                showToast(`✅ Added ${amount} NFC to ${username}`);
-                document.getElementById('adminUser').value = '';
-                document.getElementById('adminCoins').value = '';
-                loadUsers();
-                if (data.id === currentUser.id) {
-                    currentUser.coins = newCoins;
-                    localStorage.setItem('nfc_user', JSON.stringify(currentUser));
-                    document.getElementById('userBalance').textContent = newCoins.toFixed(2);
-                }
-            } catch (err) {
-                showToast('Error: ' + err.message, true);
-            }
-        }
 
-        async function adminSuspendUser() {
-            try {
-                const username = document.getElementById('suspendUser').value.trim();
-                if (!username) {
-                    showToast('Enter username', true);
-                    return;
-                }
+/* =========================================================
+   HISTORY
+========================================================= */
 
-                const { data, error } = await supabase
-                    .from('users')
-                    .update({ suspended: true })
-                    .eq('username', username)
-                    .select();
+async function loadHistory(){
 
-                if (error) {
-                    showToast('Error: ' + error.message, true);
-                    return;
-                }
+    const container =
+        document.getElementById('historyList');
 
-                showToast(`⛔ Suspended ${username}`);
-                document.getElementById('suspendUser').value = '';
-                loadUsers();
-            } catch (err) {
-                showToast('Error: ' + err.message, true);
-            }
-        }
 
-        async function adminApproveKYC(username = null) {
-            try {
-                const target = username || document.getElementById('kycApproveUser').value.trim();
-                if (!target) {
-                    showToast('Enter username', true);
-                    return;
-                }
+    const {data,error}
+        = await db
+        .from('transactions')
+        .select(
+            'id,amount,type,description,created_at,sender_id,receiver_id'
+        )
+        .or(
+            `user_id.eq.${currentUser.id},sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`
+        )
+        .order(
+            'created_at',
+            {ascending:false}
+        )
+        .limit(50);
 
-                const { data, error } = await supabase
-                    .from('users')
-                    .update({ kyc_approved: true })
-                    .eq('username', target)
-                    .select();
 
-                if (error) {
-                    showToast('Error: ' + error.message, true);
-                    return;
-                }
+    if(error){
 
-                if (data && data.length > 0) {
-                    await supabase
-                        .from('kyc_requests')
-                        .update({ status: 'approved' })
-                        .eq('user_id', data[0].id);
+        container.innerHTML =
+            '<p class="timer">Unable to load history.</p>';
 
-                    showToast(`✅ KYC Approved for ${target}`);
-                    document.getElementById('kycApproveUser').value = '';
-                    loadUsers();
-                    loadKYCRequests();
+        return;
+    }
 
-                    if (data[0].id === currentUser.id) {
-                        currentUser.kyc_approved = true;
-                        localStorage.setItem('nfc_user', JSON.stringify(currentUser));
-                        renderApp();
+
+    if(!data || data.length===0){
+
+        container.innerHTML =
+            '<p class="timer">No transactions yet.</p>';
+
+        return;
+    }
+
+
+    container.innerHTML =
+        data
+        .map(tx => {
+
+            let color='var(--gold)';
+
+            if(tx.type==='mining')
+                color='var(--green)';
+
+            if(tx.type==='transfer')
+                color='var(--blue)';
+
+            if(tx.type==='admin_credit')
+                color='var(--gold)';
+
+
+            const date =
+                new Date(tx.created_at)
+                .toLocaleString();
+
+
+            return `
+
+            <div class="user">
+
+                <div>
+
+                    <div class="user-name">
+                        ${escapeHtml(tx.type)}
+                    </div>
+
+                    <div class="user-info">
+                        ${escapeHtml(tx.description || '')}
+                        <br>
+                        ${date}
+                    </div>
+
+                </div>
+
+                <div
+                    class="user-balance"
+                    style="color:${color}"
+                >
+                    ${formatNumber(tx.amount)}
+                    NFC
+                </div>
+
+            </div>
+
+            `;
+
+        })
+        .join('');
+
+}
+
+
+/* =========================================================
+   ADMIN USERS
+========================================================= */
+
+async function loadAdminUsers(){
+
+    if(profile.role!=='admin')
+        return;
+
+
+    const {data,error}
+        = await db
+        .from('profiles')
+        .select(
+            'id,username,full_name,email,balance,kyc_status,suspended'
+        )
+        .order('created_at',{ascending:false});
+
+
+    if(error){
+
+        console.error(error);
+        return;
+    }
+
+
+    const select =
+        document.getElementById('adminUserSelect');
+
+
+    select.innerHTML =
+        '<option value="">Select user</option>' +
+        data
+        .map(u =>
+            `<option value="${u.id}">
+                ${escapeHtml(u.username)}
+            </option>`
+        )
+        .join('');
+
+
+    const container =
+        document.getElementById('adminUsers');
+
+
+    container.innerHTML =
+        data
+        .map(u => `
+
+            <div class="admin-user">
+
+                <div class="user-name">
+                    ${escapeHtml(u.username)}
+                </div>
+
+                <div class="user-info">
+                    ${escapeHtml(u.full_name)}
+                    ·
+                    ${escapeHtml(u.email)}
+                    <br>
+                    Balance:
+                    ${formatNumber(u.balance)} NFC
+                    <br>
+                    KYC:
+                    ${escapeHtml(u.kyc_status)}
+                </div>
+
+                <div class="admin-actions">
+
+                    ${
+                        u.suspended
+
+                        ?
+
+                        `<button
+                            class="small-btn small-green"
+                            onclick="adminSuspend('${u.id}',false)"
+                        >
+                            Unsuspend
+                        </button>`
+
+                        :
+
+                        `<button
+                            class="small-btn small-red"
+                            onclick="adminSuspend('${u.id}',true)"
+                        >
+                            Suspend
+                        </button>`
                     }
+
+                </div>
+
+            </div>
+
+        `)
+        .join('');
+
+}
+
+
+/* =========================================================
+   ADMIN ADD COINS
+========================================================= */
+
+async function adminAddCoins(){
+
+    if(profile.role!=='admin'){
+
+        toast('Admin access required.',true);
+        return;
+    }
+
+
+    const userId =
+        document
+        .getElementById('adminUserSelect')
+        .value;
+
+
+    const amount =
+        Number(
+            document
+            .getElementById('adminAmount')
+            .value
+        );
+
+
+    const description =
+        document
+        .getElementById('adminDescription')
+        .value
+        .trim();
+
+
+    if(!userId){
+
+        toast('Select a user.',true);
+        return;
+    }
+
+
+    if(!amount || amount<=0){
+
+        toast('Enter a valid amount.',true);
+        return;
+    }
+
+
+    try{
+
+        const {data,error}
+            = await db.rpc(
+                'admin_add_nfc',
+                {
+                    p_user_id:userId,
+                    p_amount:amount,
+                    p_description:
+                        description ||
+                        'Admin NFC credit'
                 }
-            } catch (err) {
-                showToast('Error: ' + err.message, true);
-            }
+            );
+
+
+        if(error){
+
+            toast(error.message,true);
+            return;
         }
 
-        // ============ KYC REQUEST ============
-        async function requestKYC() {
-            try {
-                if (currentUser.kyc_approved) {
-                    showToast('Already KYC approved');
-                    return;
+
+        toast(
+            `${formatNumber(data.amount)} NFC added successfully.`
+        );
+
+
+        document
+        .getElementById('adminAmount')
+        .value='';
+
+
+        document
+        .getElementById('adminDescription')
+        .value='';
+
+
+        await loadCurrentUser();
+
+        loadAdminUsers();
+
+        loadUsers();
+
+        loadHistory();
+
+
+    }catch(error){
+
+        toast(error.message,true);
+
+    }
+
+}
+
+
+/* =========================================================
+   ADMIN SUSPEND
+========================================================= */
+
+async function adminSuspend(userId,suspended){
+
+    if(profile.role!=='admin'){
+
+        toast('Admin access required.',true);
+        return;
+    }
+
+
+    try{
+
+        const {error}
+            = await db.rpc(
+                'admin_set_suspension',
+                {
+                    p_user_id:userId,
+                    p_suspended:suspended
                 }
+            );
 
-                const { data: existing } = await supabase
-                    .from('kyc_requests')
-                    .select('id')
-                    .eq('user_id', currentUser.id)
-                    .eq('status', 'pending');
 
-                if (existing && existing.length > 0) {
-                    showToast('KYC request already sent', true);
-                    return;
+        if(error){
+
+            toast(error.message,true);
+            return;
+        }
+
+
+        toast(
+            suspended
+            ? 'User suspended.'
+            : 'User unsuspended.'
+        );
+
+
+        loadAdminUsers();
+        loadUsers();
+
+
+    }catch(error){
+
+        toast(error.message,true);
+
+    }
+
+}
+
+
+/* =========================================================
+   KYC REQUESTS — ADMIN
+========================================================= */
+
+async function loadKYCRequests(){
+
+    if(profile.role!=='admin')
+        return;
+
+
+    const container =
+        document.getElementById('kycRequests');
+
+
+    const {data,error}
+        = await db
+        .from('kyc_requests')
+        .select(
+            `
+            id,
+            user_id,
+            email,
+            status,
+            created_at,
+            profiles(
+                username,
+                full_name
+            )
+            `
+        )
+        .eq('status','pending')
+        .order(
+            'created_at',
+            {ascending:false}
+        );
+
+
+    if(error){
+
+        console.error(error);
+
+        container.innerHTML =
+            '<p class="timer">Unable to load KYC requests.</p>';
+
+        return;
+    }
+
+
+    if(!data || data.length===0){
+
+        container.innerHTML =
+            '<p class="timer">No pending KYC requests.</p>';
+
+        return;
+    }
+
+
+    container.innerHTML =
+        data
+        .map(req => `
+
+            <div class="admin-user">
+
+                <div class="user-name">
+                    ${escapeHtml(
+                        req.profiles?.username || 'Unknown'
+                    )}
+                </div>
+
+                <div class="user-info">
+                    ${escapeHtml(
+                        req.profiles?.full_name || ''
+                    )}
+                    <br>
+                    ${escapeHtml(req.email)}
+                </div>
+
+                <div class="admin-actions">
+
+                    <button
+                        class="small-btn small-green"
+                        onclick="approveKYC('${req.user_id}')"
+                    >
+                        Approve KYC
+                    </button>
+
+                    <button
+                        class="small-btn small-red"
+                        onclick="rejectKYC('${req.user_id}')"
+                    >
+                        Reject
+                    </button>
+
+                </div>
+
+            </div>
+
+        `)
+        .join('');
+
+}
+
+
+/* =========================================================
+   APPROVE KYC
+========================================================= */
+
+async function approveKYC(userId){
+
+    try{
+
+        const {error}
+            = await db.rpc(
+                'admin_approve_kyc',
+                {
+                    p_user_id:userId,
+                    p_note:'KYC approved by administrator'
                 }
+            );
 
-                const { error } = await supabase
-                    .from('kyc_requests')
-                    .insert({
-                        user_id: currentUser.id,
-                        email: currentUser.email
-                    });
 
-                if (error) {
-                    showToast('Error: ' + error.message, true);
-                    return;
+        if(error){
+
+            toast(error.message,true);
+            return;
+        }
+
+
+        toast('KYC approved successfully.');
+
+        loadKYCRequests();
+        loadAdminUsers();
+        loadUsers();
+
+
+    }catch(error){
+
+        toast(error.message,true);
+
+    }
+
+}
+
+
+/* =========================================================
+   REJECT KYC
+========================================================= */
+
+async function rejectKYC(userId){
+
+    try{
+
+        const {error}
+            = await db.rpc(
+                'admin_reject_kyc',
+                {
+                    p_user_id:userId,
+                    p_note:'KYC rejected by administrator'
                 }
+            );
 
-                showToast('📧 KYC request sent to admin');
-            } catch (err) {
-                showToast('Error: ' + err.message, true);
-            }
+
+        if(error){
+
+            toast(error.message,true);
+            return;
         }
 
-        // ============ UI HELPERS ============
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('#transferTab, #usersTab, #adminTabContent').forEach(t => t.classList.add('hidden'));
 
-            if (tab === 'transfer') {
-                document.querySelector('.tab:nth-child(1)').classList.add('active');
-                document.getElementById('transferTab').classList.remove('hidden');
-            } else if (tab === 'users') {
-                document.querySelector('.tab:nth-child(2)').classList.add('active');
-                document.getElementById('usersTab').classList.remove('hidden');
-                loadUsers();
-            } else if (tab === 'admin') {
-                document.querySelector('.tab:nth-child(3)').classList.add('active');
-                document.getElementById('adminTabContent').classList.remove('hidden');
-                loadKYCRequests();
-            }
+        toast('KYC rejected.');
+
+        loadKYCRequests();
+        loadAdminUsers();
+        loadUsers();
+
+
+    }catch(error){
+
+        toast(error.message,true);
+
+    }
+
+}
+
+
+/* =========================================================
+   TABS
+========================================================= */
+
+function openTab(tab){
+
+    const tabs = [
+        'transfer',
+        'users',
+        'history',
+        'admin'
+    ];
+
+
+    tabs.forEach(name => {
+
+        document
+            .getElementById(name+'Tab')
+            .classList.add('hidden');
+
+
+        const nav =
+            document
+            .getElementById(
+                'nav'+
+                name.charAt(0).toUpperCase()+
+                name.slice(1)
+            );
+
+
+        if(nav)
+            nav.classList.remove('active');
+
+    });
+
+
+    document
+        .getElementById(tab+'Tab')
+        .classList.remove('hidden');
+
+
+    const nav =
+        document
+        .getElementById(
+            'nav'+
+            tab.charAt(0).toUpperCase()+
+            tab.slice(1)
+        );
+
+
+    if(nav)
+        nav.classList.add('active');
+
+
+    if(tab==='users')
+        loadUsers();
+
+
+    if(tab==='history')
+        loadHistory();
+
+
+    if(tab==='admin'){
+
+        if(profile.role!=='admin'){
+
+            toast('Admin access required.',true);
+
+            openTab('transfer');
+
+            return;
         }
 
-        function showToast(msg, isError = false) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.className = 'toast' + (isError ? ' error' : '');
-            toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        loadAdminUsers();
+        loadKYCRequests();
+
+    }
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(value){
+
+    return String(value ?? '')
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#039;');
+
+}
+
+
+/* =========================================================
+   AUTH STATE
+========================================================= */
+
+db.auth.onAuthStateChange(
+    async (event,session) => {
+
+        if(session?.user){
+
+            currentUser=session.user;
+
+            /*
+             Avoid doing heavy work inside
+             auth callback repeatedly.
+            */
+
+            setTimeout(
+                () => loadCurrentUser(),
+                0
+            );
+
+        }else{
+
+            currentUser=null;
+            profile=null;
+
+            document
+                .getElementById('mainApp')
+                .classList.add('hidden');
+
+            document
+                .getElementById('authScreen')
+                .classList.remove('hidden');
+
         }
 
-        // ============ INIT ============
-        const savedUser = localStorage.getItem('nfc_user');
-        if (savedUser) {
-            try {
-                currentUser = JSON.parse(savedUser);
-                renderApp();
-            } catch (e) {
-                localStorage.removeItem('nfc_user');
-            }
+    }
+);
+
+
+/* =========================================================
+   INITIAL SESSION
+========================================================= */
+
+(async function init(){
+
+    try{
+
+        const {
+            data:{session}
+        } = await db.auth.getSession();
+
+
+        if(session?.user){
+
+            currentUser=session.user;
+
+            await loadCurrentUser();
+
+        }else{
+
+            document
+                .getElementById('authScreen')
+                .classList.remove('hidden');
+
         }
 
-        console.log('🚀 NFC Future Coin Miner Loaded!');
-        console.log('✅ Connected to Supabase');
-    </script>
+    }catch(error){
+
+        console.error(error);
+
+        toast(
+            'Unable to initialize application.',
+            true
+        );
+
+    }
+
+})();
+
+</script>
+
 </body>
 </html>
