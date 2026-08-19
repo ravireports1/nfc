@@ -755,197 +755,517 @@ document.getElementById('loginBox').classList.remove('hidden');
 }
 
 
-/* =========================================================
-   REGISTER
-========================================================= */
-
 async function register(){
 
-try{
+    const btn = document.querySelector('#registerBox button');
 
-const full_name=document.getElementById('regName').value.trim();
-const username=document.getElementById('regUsername').value.trim().toLowerCase();
-const email=document.getElementById('regEmail').value.trim().toLowerCase();
-const phone=document.getElementById('regPhone').value.trim();
-const password=document.getElementById('regPassword').value;
-const referral=document.getElementById('regReferral').value.trim().toUpperCase();
+    try{
 
-if(!full_name || !username || !email || !phone || !password){
+        if(btn){
+            btn.disabled = true;
+            btn.dataset.originalText = btn.innerHTML;
+            btn.innerHTML = 'Creating Account...';
+        }
 
-toast('Please complete all required fields',true);
-return;
+        const full_name =
+            document.getElementById('regName').value.trim();
+
+        const username =
+            document.getElementById('regUsername').value.trim().toLowerCase();
+
+        const email =
+            document.getElementById('regEmail').value.trim().toLowerCase();
+
+        const phone =
+            document.getElementById('regPhone').value.trim();
+
+        const password =
+            document.getElementById('regPassword').value;
+
+        const referral =
+            document.getElementById('regReferral').value.trim().toUpperCase();
+
+
+        /* =========================
+           BASIC VALIDATION
+        ========================= */
+
+        if(
+            !full_name ||
+            !username ||
+            !email ||
+            !phone ||
+            !password
+        ){
+
+            toast(
+                'Please complete all required fields',
+                true
+            );
+
+            return;
+        }
+
+
+        if(password.length < 6){
+
+            toast(
+                'Password must be at least 6 characters',
+                true
+            );
+
+            return;
+        }
+
+
+        if(!/^[a-z0-9_]{3,20}$/.test(username)){
+
+            toast(
+                'Username: 3-20 letters, numbers or underscore',
+                true
+            );
+
+            return;
+        }
+
+
+        /* =========================
+           CHECK USERNAME
+        ========================= */
+
+        const {
+            data: existing,
+            error: checkError
+        } = await sb
+            .from('profiles')
+            .select('id')
+            .eq('username', username)
+            .maybeSingle();
+
+
+        if(checkError){
+
+            console.error(
+                'Username check error:',
+                checkError
+            );
+
+            toast(
+                'Unable to check username. Please try again.',
+                true
+            );
+
+            return;
+        }
+
+
+        if(existing){
+
+            toast(
+                'Username already exists',
+                true
+            );
+
+            return;
+        }
+
+
+        /* =========================
+           REFERRAL LOOKUP
+        ========================= */
+
+        let referredBy = null;
+        let referrerUsername = null;
+
+
+        if(referral){
+
+            const {
+                data: ref,
+                error: refError
+            } = await sb
+                .from('profiles')
+                .select('id,username')
+                .eq('referral_code', referral)
+                .maybeSingle();
+
+
+            if(refError){
+
+                console.error(
+                    'Referral lookup error:',
+                    refError
+                );
+
+                toast(
+                    'Referral lookup failed',
+                    true
+                );
+
+                return;
+            }
+
+
+            if(!ref){
+
+                toast(
+                    'Invalid referral code',
+                    true
+                );
+
+                return;
+            }
+
+
+            referredBy = ref.id;
+            referrerUsername = ref.username;
+
+        }
+
+
+        /* =========================
+           DEVICE ID
+        ========================= */
+
+        let deviceId =
+            localStorage.getItem('nfc_device_id');
+
+
+        if(!deviceId){
+
+            deviceId =
+                crypto.randomUUID
+                ? crypto.randomUUID()
+                : 'device_' +
+                  Math.random()
+                  .toString(36)
+                  .slice(2);
+
+            localStorage.setItem(
+                'nfc_device_id',
+                deviceId
+            );
+
+        }
+
+
+        /* =========================
+           SUPABASE AUTH SIGNUP
+        ========================= */
+
+        const {
+            data,
+            error
+        } = await sb.auth.signUp({
+
+            email: email,
+
+            password: password,
+
+            options: {
+
+                data: {
+
+                    full_name: full_name,
+
+                    username: username,
+
+                    phone: phone
+
+                }
+
+            }
+
+        });
+
+
+        /* =========================
+           AUTH ERROR
+        ========================= */
+
+        if(error){
+
+            console.error(
+                'Supabase signup error:',
+                error
+            );
+
+
+            if(
+                error.status === 429 ||
+                error.message
+                .toLowerCase()
+                .includes('rate limit') ||
+                error.message
+                .toLowerCase()
+                .includes('too many')
+            ){
+
+                toast(
+                    'Too many registration attempts. Please wait a few minutes and try again.',
+                    true
+                );
+
+            }
+            else if(
+                error.message
+                .toLowerCase()
+                .includes('already registered')
+            ){
+
+                toast(
+                    'This email is already registered. Please login.',
+                    true
+                );
+
+            }
+            else{
+
+                toast(
+                    error.message,
+                    true
+                );
+
+            }
+
+            return;
+        }
+
+
+        if(!data || !data.user){
+
+            toast(
+                'Registration failed',
+                true
+            );
+
+            return;
+        }
+
+
+        /* =========================
+           GENERATE UNIQUE REFERRAL CODE
+        ========================= */
+
+        const referralCode =
+            'NFC' +
+            username
+                .replace(/[^a-z0-9]/g,'')
+                .slice(0,8)
+                .toUpperCase() +
+            Math.random()
+                .toString(36)
+                .substring(2,6)
+                .toUpperCase();
+
+
+        /* =========================
+           CREATE PROFILE
+        ========================= */
+
+        const {
+            error: profileError
+        } = await sb
+            .from('profiles')
+            .insert({
+
+                id: data.user.id,
+
+                username: username,
+
+                full_name: full_name,
+
+                email: email,
+
+                phone: phone,
+
+                balance: 0,
+
+                role: 'user',
+
+                kyc_status: 'none',
+
+                suspended: false,
+
+                device_id: deviceId,
+
+                referred_by: referredBy,
+
+                referral_code: referralCode,
+
+                referral_count: 0,
+
+                mining_rate: 0.25
+
+            });
+
+
+        /* =========================
+           PROFILE ERROR
+        ========================= */
+
+        if(profileError){
+
+            console.error(
+                'Profile creation error:',
+                profileError
+            );
+
+
+            toast(
+                'Account created, but profile setup failed. Please contact admin.',
+                true
+            );
+
+            return;
+        }
+
+
+        /* =========================
+           UPDATE REFERRER
+        ========================= */
+
+        if(referredBy){
+
+            const {
+                data: referrer,
+                error: referrerError
+            } = await sb
+                .from('profiles')
+                .select(
+                    'id,referral_count'
+                )
+                .eq('id', referredBy)
+                .single();
+
+
+            if(!referrerError && referrer){
+
+                const newCount =
+                    Number(
+                        referrer.referral_count || 0
+                    ) + 1;
+
+
+                /*
+                 * Determine new mining rate
+                 */
+
+                let newRate = 0.25;
+
+
+                const {
+                    data: level
+                } = await sb
+                    .from('referral_levels')
+                    .select(
+                        'mining_rate'
+                    )
+                    .lte(
+                        'minimum_referrals',
+                        newCount
+                    )
+                    .order(
+                        'minimum_referrals',
+                        {
+                            ascending:false
+                        }
+                    )
+                    .limit(1)
+                    .maybeSingle();
+
+
+                if(level){
+
+                    newRate =
+                        Number(
+                            level.mining_rate
+                        );
+
+                }
+
+
+                await sb
+                    .from('profiles')
+                    .update({
+
+                        referral_count:
+                            newCount,
+
+                        mining_rate:
+                            newRate
+
+                    })
+                    .eq(
+                        'id',
+                        referredBy
+                    );
+
+            }
+
+        }
+
+
+        /* =========================
+           SUCCESS
+        ========================= */
+
+        toast(
+            'Account created successfully!'
+        );
+
+
+        /*
+         * Clear registration fields
+         */
+
+        document.getElementById('regName').value = '';
+
+        document.getElementById('regUsername').value = '';
+
+        document.getElementById('regEmail').value = '';
+
+        document.getElementById('regPhone').value = '';
+
+        document.getElementById('regPassword').value = '';
+
+        document.getElementById('regReferral').value = '';
+
+
+        showLogin();
+
+
+    }
+    catch(err){
+
+        console.error(
+            'Registration error:',
+            err
+        );
+
+
+        toast(
+            err.message ||
+            'Registration failed',
+            true
+        );
+
+    }
+    finally{
+
+        if(btn){
+
+            btn.disabled = false;
+
+            btn.innerHTML =
+                btn.dataset.originalText ||
+                'Create Account';
+
+        }
+
+    }
 
 }
-
-if(password.length<6){
-
-toast('Password must be at least 6 characters',true);
-return;
-
-}
-
-if(!/^[a-z0-9_]{3,20}$/.test(username)){
-
-toast('Username: 3-20 letters, numbers or underscore',true);
-return;
-
-}
-
-
-/* Check username */
-
-const {data:existing,error:checkError}=await sb
-.from('profiles')
-.select('id')
-.eq('username',username)
-.maybeSingle();
-
-if(checkError){
-
-console.error(checkError);
-
-}
-
-
-/* Username exists */
-
-if(existing){
-
-toast('Username already exists',true);
-return;
-
-}
-
-
-/* Referral */
-
-let referredBy=null;
-
-if(referral){
-
-const {data:ref,error:refError}=await sb
-.from('profiles')
-.select('id,username')
-.eq('referral_code',referral)
-.maybeSingle();
-
-if(refError){
-
-toast('Referral lookup failed',true);
-return;
-
-}
-
-if(!ref){
-
-toast('Invalid referral code',true);
-return;
-
-}
-
-referredBy=ref.id;
-
-}
-
-
-/* Device ID */
-
-let deviceId=localStorage.getItem('nfc_device_id');
-
-if(!deviceId){
-
-deviceId=
-crypto.randomUUID ?
-crypto.randomUUID() :
-'device_'+Math.random().toString(36).slice(2);
-
-localStorage.setItem('nfc_device_id',deviceId);
-
-}
-
-
-/* Supabase Auth */
-
-const {data,error}=await sb.auth.signUp({
-
-email,
-password,
-
-options:{
-data:{
-full_name,
-username,
-phone
-}
-}
-
-});
-
-if(error){
-
-toast(error.message,true);
-return;
-
-}
-
-if(!data.user){
-
-toast('Registration failed',true);
-return;
-
-}
-
-
-/* Create profile */
-
-const {error:profileError}=await sb
-.from('profiles')
-.insert({
-
-id:data.user.id,
-username,
-full_name,
-email,
-phone,
-balance:0,
-role:'user',
-kyc_status:'none',
-suspended:false,
-device_id:deviceId,
-referred_by:referredBy
-
-});
-
-if(profileError){
-
-console.error(profileError);
-
-toast(
-'Account created, but profile setup failed: '+
-profileError.message,
-true
-);
-
-return;
-
-}
-
-toast(
-'Account created. Check your email if confirmation is enabled.'
-);
-
-showLogin();
-
-}catch(err){
-
-console.error(err);
-toast(err.message,true);
-
-}
-
-}
-
-
 /* =========================================================
    LOGIN
 ========================================================= */
