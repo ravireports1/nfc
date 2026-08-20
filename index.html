@@ -1066,26 +1066,6 @@ async function register(){
         const {
             error: profileError
         } = await sb
-            .from('profiles')
-            .insert({
-
-                id: data.user.id,
-
-                username: username,
-
-                full_name: full_name,
-
-                email: email,
-
-                phone: phone,
-
-                balance: 0,
-
-                role: 'user',
-
-                kyc_status: 'none',
-
-                suspended: false,
 
                 device_id: deviceId,
 
