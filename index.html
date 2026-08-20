@@ -1201,6 +1201,202 @@ async function register(){
     }
 
 }
+ async function register(){
+
+    const btn = document.getElementById('registerBtn');
+
+    try{
+
+        if(btn){
+            btn.disabled = true;
+            btn.dataset.originalText = btn.innerHTML;
+            btn.innerHTML = 'Creating Account...';
+        }
+
+        const full_name =
+            document.getElementById('regName').value.trim();
+
+        const username =
+            document.getElementById('regUsername').value.trim().toLowerCase();
+
+        const email =
+            document.getElementById('regEmail').value.trim().toLowerCase();
+
+        const phone =
+            document.getElementById('regPhone').value.trim();
+
+        const password =
+            document.getElementById('regPassword').value;
+
+        const referralInput =
+            document.getElementById('regReferral').value.trim();
+
+        /* =========================
+           BASIC VALIDATION
+        ========================= */
+
+        if(!full_name){
+            toast('Please enter your full name.', true);
+            return;
+        }
+
+        if(!username){
+            toast('Please enter a username.', true);
+            return;
+        }
+
+        if(!email){
+            toast('Please enter your email.', true);
+            return;
+        }
+
+        if(!password){
+            toast('Please enter a password.', true);
+            return;
+        }
+
+        if(password.length < 6){
+            toast('Password must be at least 6 characters.', true);
+            return;
+        }
+
+
+        /* =========================
+           SIGN UP WITH SUPABASE
+        ========================= */
+
+        const {
+            data,
+            error
+        } = await sb.auth.signUp({
+
+            email: email,
+
+            password: password,
+
+            options: {
+
+                data: {
+
+                    full_name: full_name,
+
+                    username: username,
+
+                    phone: phone,
+
+                    referral_code: referralInput || null
+
+                }
+
+            }
+
+        });
+
+
+        /* =========================
+           AUTH ERROR
+        ========================= */
+
+        if(error){
+
+            console.error(
+                'Registration error:',
+                error
+            );
+
+            toast(
+                error.message ||
+                'Registration failed.',
+                true
+            );
+
+            return;
+        }
+
+
+        /* =========================
+           VERIFY USER CREATED
+        ========================= */
+
+        if(!data || !data.user){
+
+            toast(
+                'Account could not be created.',
+                true
+            );
+
+            return;
+        }
+
+
+        /* =========================
+           SUCCESS
+           
+           IMPORTANT:
+           The Supabase database trigger
+           now creates the profiles row.
+        ========================= */
+
+        toast(
+            'Account created successfully!'
+        );
+
+
+        /* =========================
+           CLEAR REGISTRATION FORM
+        ========================= */
+
+        document.getElementById('regName').value = '';
+
+        document.getElementById('regUsername').value = '';
+
+        document.getElementById('regEmail').value = '';
+
+        document.getElementById('regPhone').value = '';
+
+        document.getElementById('regPassword').value = '';
+
+        document.getElementById('regReferral').value = '';
+
+
+        /* =========================
+           SHOW LOGIN
+        ========================= */
+
+        showLogin();
+
+    }
+
+    catch(err){
+
+        console.error(
+            'Registration error:',
+            err
+        );
+
+        toast(
+            err.message ||
+            'Registration failed.',
+            true
+        );
+
+    }
+
+    finally{
+
+        if(btn){
+
+            btn.disabled = false;
+
+            btn.innerHTML =
+                btn.dataset.originalText ||
+                'Create Account';
+
+        }
+
+    }
+
+}
 /* =========================================================
    LOGIN
 ========================================================= */
