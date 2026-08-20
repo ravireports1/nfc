@@ -280,16 +280,16 @@ input:focus{border-color:var(--gold)}
 <div id="loginBox">
 
 <div class="field">
-<label>Email</label>
-<input id="loginEmail" type="email" placeholder="you@example.com">
+<label>Username</label>
+<input id="loginUsername" type="text" autocomplete="username" placeholder="Your username">
 </div>
 
 <div class="field">
 <label>Password</label>
-<input id="loginPassword" type="password" placeholder="Your password">
+<input id="loginPassword" type="password" autocomplete="current-password" placeholder="Your password">
 </div>
 
-<button class="btn" onclick="login()">Login</button>
+<button id="loginBtn" class="btn" onclick="login()">Login</button>
 
 <div class="switch">
 Don't have an account?
@@ -302,42 +302,31 @@ Don't have an account?
 
 <div class="field">
 <label>Full Name</label>
-<input id="regName" placeholder="Your full name">
+<input id="regName" type="text" autocomplete="name" placeholder="Your full name">
 </div>
 
 <div class="field">
 <label>Username</label>
-<input id="regUsername" placeholder="username">
-</div>
-
-<div class="field">
-<label>Email</label>
-<input id="regEmail" type="email" placeholder="you@example.com">
-</div>
-
-<div class="field">
-<label>Phone</label>
-<input id="regPhone" type="tel" placeholder="+92...">
+<input id="regUsername" type="text" autocomplete="username" placeholder="3–20 letters, numbers or underscore">
 </div>
 
 <div class="field">
 <label>Password</label>
-<input id="regPassword" type="password" placeholder="Minimum 6 characters">
+<input id="regPassword" type="password" autocomplete="new-password" placeholder="Minimum 6 characters">
 </div>
 
 <div class="field">
 <label>Referral Code (optional)</label>
-<input id="regReferral" placeholder="NFCXXXXXXXX">
+<input id="regReferral" type="text" placeholder="NFCXXXXXXXX">
 </div>
 
-<button class="btn" onclick="register()">Create Account</button>
+<button id="registerBtn" class="btn" onclick="register()">Create Account</button>
 
 <div class="switch">
 Already registered?
 <span onclick="showLogin()">Login</span>
 </div>
 
-</div>
 </div>
 
 </div>
@@ -653,16 +642,6 @@ Reject KYC
 </div>
 
 <div class="row">
-<div>Email</div>
-<strong id="profileEmail"></strong>
-</div>
-
-<div class="row">
-<div>Phone</div>
-<strong id="profilePhone"></strong>
-</div>
-
-<div class="row">
 <div>Balance</div>
 <strong id="profileBalance" style="color:var(--gold)"></strong>
 </div>
@@ -737,6 +716,17 @@ return String(value ?? '')
 
 
 /* =========================================================
+   USERNAME AUTHENTICATION
+   Users enter only username + password.
+   Supabase Auth still uses an internal email identifier.
+   This email is never shown to the user.
+========================================================= */
+
+function authEmailFromUsername(username){
+    return username.trim().toLowerCase() + '@auth.nfc-future-coin.local';
+}
+
+/* =========================================================
    AUTH UI
 ========================================================= */
 
@@ -757,694 +747,224 @@ document.getElementById('loginBox').classList.remove('hidden');
 
 async function register(){
 
-    const btn = document.querySelector('#registerBox button');
+    const btn=document.getElementById('registerBtn');
 
     try{
 
         if(btn){
-            btn.disabled = true;
-            btn.dataset.originalText = btn.innerHTML;
-            btn.innerHTML = 'Creating Account...';
+            btn.disabled=true;
+            btn.dataset.originalText=btn.textContent;
+            btn.textContent='Creating Account...';
         }
 
-        const full_name =
-            document.getElementById('regName').value.trim();
+        const full_name=document.getElementById('regName').value.trim();
+        const username=document.getElementById('regUsername').value.trim().toLowerCase();
+        const password=document.getElementById('regPassword').value;
+        const referral=document.getElementById('regReferral').value.trim().toUpperCase();
 
-        const username =
-            document.getElementById('regUsername').value.trim().toLowerCase();
-
-        const email =
-            document.getElementById('regEmail').value.trim().toLowerCase();
-
-        const phone =
-            document.getElementById('regPhone').value.trim();
-
-        const password =
-            document.getElementById('regPassword').value;
-
-        const referral =
-            document.getElementById('regReferral').value.trim().toUpperCase();
-
-
-        /* =========================
-           BASIC VALIDATION
-        ========================= */
-
-        if(
-            !full_name ||
-            !username ||
-            !email ||
-            !phone ||
-            !password
-        ){
-
-            toast(
-                'Please complete all required fields',
-                true
-            );
-
+        if(!full_name){
+            toast('Please enter your full name.',true);
             return;
         }
-
-
-        if(password.length < 6){
-
-            toast(
-                'Password must be at least 6 characters',
-                true
-            );
-
-            return;
-        }
-
 
         if(!/^[a-z0-9_]{3,20}$/.test(username)){
-
-            toast(
-                'Username: 3-20 letters, numbers or underscore',
-                true
-            );
-
+            toast('Username must be 3–20 letters, numbers or underscore.',true);
             return;
         }
 
+        if(password.length < 6){
+            toast('Password must be at least 6 characters.',true);
+            return;
+        }
 
-        /* =========================
-           CHECK USERNAME
-        ========================= */
-
-        const {
-            data: existing,
-            error: checkError
-        } = await sb
+        /* Check username before creating the Auth account. */
+        const {data:existing,error:checkError}=await sb
             .from('profiles')
             .select('id')
-            .eq('username', username)
+            .eq('username',username)
             .maybeSingle();
 
-
         if(checkError){
-
-            console.error(
-                'Username check error:',
-                checkError
-            );
-
-            toast(
-                'Unable to check username. Please try again.',
-                true
-            );
-
+            console.error('Username check error:',checkError);
+            toast('Unable to check username. Please try again.',true);
             return;
         }
-
 
         if(existing){
-
-            toast(
-                'Username already exists',
-                true
-            );
-
+            toast('Username already exists. Choose another one.',true);
             return;
         }
 
-
-        /* =========================
-           REFERRAL LOOKUP
-        ========================= */
-
-        let referredBy = null;
-        let referrerUsername = null;
-
+        /* Optional referral lookup. */
+        let referredBy=null;
 
         if(referral){
 
-            const {
-                data: ref,
-                error: refError
-            } = await sb
+            const {data:ref,error:refError}=await sb
                 .from('profiles')
-                .select('id,username')
-                .eq('referral_code', referral)
+                .select('id')
+                .eq('referral_code',referral)
                 .maybeSingle();
 
-
             if(refError){
-
-                console.error(
-                    'Referral lookup error:',
-                    refError
-                );
-
-                toast(
-                    'Referral lookup failed',
-                    true
-                );
-
+                console.error('Referral lookup error:',refError);
+                toast('Unable to check referral code.',true);
                 return;
             }
-
 
             if(!ref){
-
-                toast(
-                    'Invalid referral code',
-                    true
-                );
-
+                toast('Invalid referral code.',true);
                 return;
             }
 
-
-            referredBy = ref.id;
-            referrerUsername = ref.username;
-
+            referredBy=ref.id;
         }
-
-
-        /* =========================
-           DEVICE ID
-        ========================= */
-
-        let deviceId =
-            localStorage.getItem('nfc_device_id');
-
-
-        if(!deviceId){
-
-            deviceId =
-                crypto.randomUUID
-                ? crypto.randomUUID()
-                : 'device_' +
-                  Math.random()
-                  .toString(36)
-                  .slice(2);
-
-            localStorage.setItem(
-                'nfc_device_id',
-                deviceId
-            );
-
-        }
-
-
-        /* =========================
-           SUPABASE AUTH SIGNUP
-        ========================= */
-
-        const {
-            data,
-            error
-        } = await sb.auth.signUp({
-
-            email: email,
-
-            password: password,
-
-            options: {
-
-                data: {
-
-                    full_name: full_name,
-
-                    username: username,
-
-                    phone: phone
-
-                }
-
-            }
-
-        });
-
-
-        /* =========================
-           AUTH ERROR
-        ========================= */
-
-        if(error){
-
-            console.error(
-                'Supabase signup error:',
-                error
-            );
-
-
-            if(
-                error.status === 429 ||
-                error.message
-                .toLowerCase()
-                .includes('rate limit') ||
-                error.message
-                .toLowerCase()
-                .includes('too many')
-            ){
-
-                toast(
-                    'Too many registration attempts. Please wait a few minutes and try again.',
-                    true
-                );
-
-            }
-            else if(
-                error.message
-                .toLowerCase()
-                .includes('already registered')
-            ){
-
-                toast(
-                    'This email is already registered. Please login.',
-                    true
-                );
-
-            }
-            else{
-
-                toast(
-                    error.message,
-                    true
-                );
-
-            }
-
-            return;
-        }
-
-
-        if(!data || !data.user){
-
-            toast(
-                'Registration failed',
-                true
-            );
-
-            return;
-        }
-
-
-        /* =========================
-           GENERATE UNIQUE REFERRAL CODE
-        ========================= */
-
-        const referralCode =
-            'NFC' +
-            username
-                .replace(/[^a-z0-9]/g,'')
-                .slice(0,8)
-                .toUpperCase() +
-            Math.random()
-                .toString(36)
-                .substring(2,6)
-                .toUpperCase();
-
-
-       
-       
-
-            const {
-                data: referrer,
-                error: referrerError
-            } = await sb
-                .from('profiles')
-                .select(
-                    'id,referral_count'
-                )
-                .eq('id', referredBy)
-                .single();
-
-
-            if(!referrerError && referrer){
-
-                const newCount =
-                    Number(
-                        referrer.referral_count || 0
-                    ) + 1;
-
-
-                /*
-                 * Determine new mining rate
-                 */
-
-                let newRate = 0.25;
-
-
-                const {
-                    data: level
-                } = await sb
-                    .from('referral_levels')
-                    .select(
-                        'mining_rate'
-                    )
-                    .lte(
-                        'minimum_referrals',
-                        newCount
-                    )
-                    .order(
-                        'minimum_referrals',
-                        {
-                            ascending:false
-                        }
-                    )
-                    .limit(1)
-                    .maybeSingle();
-
-
-                if(level){
-
-                    newRate =
-                        Number(
-                            level.mining_rate
-                        );
-
-                }
-
-
-                await sb
-                    .from('profiles')
-                    .update({
-
-                        referral_count:
-                            newCount,
-
-                        mining_rate:
-                            newRate
-
-                    })
-                    .eq(
-                        'id',
-                        referredBy
-                    );
-
-            }
-
-        }
-
-
-        /* =========================
-           SUCCESS
-        ========================= */
-
-        toast(
-            'Account created successfully!'
-        );
-
 
         /*
-         * Clear registration fields
+         * Supabase Auth requires an identifier for password auth.
+         * We create a private synthetic email from the username.
+         * The user never enters, receives, or sees this email.
          */
+        const internalEmail=authEmailFromUsername(username);
 
-        document.getElementById('regName').value = '';
-
-        document.getElementById('regUsername').value = '';
-
-        document.getElementById('regEmail').value = '';
-
-        document.getElementById('regPhone').value = '';
-
-        document.getElementById('regPassword').value = '';
-
-        document.getElementById('regReferral').value = '';
-
-
-        showLogin();
-
-
-    }
-    catch(err){
-
-        console.error(
-            'Registration error:',
-            err
-        );
-
-
-        toast(
-            err.message ||
-            'Registration failed',
-            true
-        );
-
-    }
-    finally{
-
-        if(btn){
-
-            btn.disabled = false;
-
-            btn.innerHTML =
-                btn.dataset.originalText ||
-                'Create Account';
-
-        }
-
-    }
-
-}
- async function register(){
-
-    const btn = document.getElementById('registerBtn');
-
-    try{
-
-        if(btn){
-            btn.disabled = true;
-            btn.dataset.originalText = btn.innerHTML;
-            btn.innerHTML = 'Creating Account...';
-        }
-
-        const full_name =
-            document.getElementById('regName').value.trim();
-
-        const username =
-            document.getElementById('regUsername').value.trim().toLowerCase();
-
-        const email =
-            document.getElementById('regEmail').value.trim().toLowerCase();
-
-        const phone =
-            document.getElementById('regPhone').value.trim();
-
-        const password =
-            document.getElementById('regPassword').value;
-
-        const referralInput =
-            document.getElementById('regReferral').value.trim();
-
-        /* =========================
-           BASIC VALIDATION
-        ========================= */
-
-        if(!full_name){
-            toast('Please enter your full name.', true);
-            return;
-        }
-
-        if(!username){
-            toast('Please enter a username.', true);
-            return;
-        }
-
-        if(!email){
-            toast('Please enter your email.', true);
-            return;
-        }
-
-        if(!password){
-            toast('Please enter a password.', true);
-            return;
-        }
-
-        if(password.length < 6){
-            toast('Password must be at least 6 characters.', true);
-            return;
-        }
-
-
-        /* =========================
-           SIGN UP WITH SUPABASE
-        ========================= */
-
-        const {
-            data,
-            error
-        } = await sb.auth.signUp({
-
-            email: email,
-
-            password: password,
-
-            options: {
-
-                data: {
-
-                    full_name: full_name,
-
-                    username: username,
-
-                    phone: phone,
-
-                    referral_code: referralInput || null
-
+        const {data,error}=await sb.auth.signUp({
+            email:internalEmail,
+            password:password,
+            options:{
+                data:{
+                    full_name:full_name,
+                    username:username,
+                    phone:null
                 }
-
             }
-
         });
 
-
-        /* =========================
-           AUTH ERROR
-        ========================= */
-
         if(error){
+            console.error('Supabase signup error:',error);
 
-            console.error(
-                'Registration error:',
-                error
-            );
+            const msg=(error.message||'').toLowerCase();
 
-            toast(
-                error.message ||
-                'Registration failed.',
-                true
-            );
-
-            return;
-        }
-
-
-        /* =========================
-           VERIFY USER CREATED
-        ========================= */
-
-        if(!data || !data.user){
-
-            toast(
-                'Account could not be created.',
-                true
-            );
+            if(error.status===429 || msg.includes('rate limit') || msg.includes('too many')){
+                toast('Too many registration attempts. Please wait a few minutes.',true);
+            }else if(msg.includes('already registered') || msg.includes('already been registered')){
+                toast('This username is already registered. Please login.',true);
+            }else{
+                toast(error.message||'Registration failed.',true);
+            }
 
             return;
         }
 
+        if(!data?.user){
+            toast('Account could not be created.',true);
+            return;
+        }
 
-        /* =========================
-           SUCCESS
-           
-           IMPORTANT:
-           The Supabase database trigger
-           now creates the profiles row.
-        ========================= */
+        /*
+         * Normally the database trigger creates the profile.
+         * If the trigger is configured correctly, no client-side
+         * profile insert is required.
+         */
 
-        toast(
-            'Account created successfully!'
-        );
+        toast('Account created successfully!');
 
-
-        /* =========================
-           CLEAR REGISTRATION FORM
-        ========================= */
-
-        document.getElementById('regName').value = '';
-
-        document.getElementById('regUsername').value = '';
-
-        document.getElementById('regEmail').value = '';
-
-        document.getElementById('regPhone').value = '';
-
-        document.getElementById('regPassword').value = '';
-
-        document.getElementById('regReferral').value = '';
-
-
-        /* =========================
-           SHOW LOGIN
-        ========================= */
+        document.getElementById('regName').value='';
+        document.getElementById('regUsername').value='';
+        document.getElementById('regPassword').value='';
+        document.getElementById('regReferral').value='';
 
         showLogin();
 
-    }
+    }catch(err){
 
-    catch(err){
+        console.error('Registration error:',err);
+        toast(err.message||'Registration failed.',true);
 
-        console.error(
-            'Registration error:',
-            err
-        );
-
-        toast(
-            err.message ||
-            'Registration failed.',
-            true
-        );
-
-    }
-
-    finally{
+    }finally{
 
         if(btn){
-
-            btn.disabled = false;
-
-            btn.innerHTML =
-                btn.dataset.originalText ||
-                'Create Account';
-
+            btn.disabled=false;
+            btn.textContent=btn.dataset.originalText||'Create Account';
         }
 
     }
 
 }
+
 /* =========================================================
    LOGIN
 ========================================================= */
 
 async function login(){
 
-try{
+    const btn=document.getElementById('loginBtn');
 
-const email=document.getElementById('loginEmail').value.trim();
-const password=document.getElementById('loginPassword').value;
+    try{
 
-if(!email || !password){
+        if(btn){
+            btn.disabled=true;
+            btn.dataset.originalText=btn.textContent;
+            btn.textContent='Logging in...';
+        }
 
-toast('Enter email and password',true);
-return;
+        const username=document.getElementById('loginUsername').value.trim().toLowerCase();
+        const password=document.getElementById('loginPassword').value;
+
+        if(!/^[a-z0-9_]{3,20}$/.test(username)){
+            toast('Enter a valid username.',true);
+            return;
+        }
+
+        if(!password){
+            toast('Enter your password.',true);
+            return;
+        }
+
+        const internalEmail=authEmailFromUsername(username);
+
+        const {data,error}=await sb.auth.signInWithPassword({
+            email:internalEmail,
+            password:password
+        });
+
+        if(error){
+            console.error('Login error:',error);
+
+            const msg=(error.message||'').toLowerCase();
+
+            if(msg.includes('email not confirmed')){
+                toast('Email confirmation must be disabled in Supabase Auth settings.',true);
+            }else if(msg.includes('invalid login credentials')){
+                toast('Incorrect username or password.',true);
+            }else{
+                toast(error.message||'Login failed.',true);
+            }
+
+            return;
+        }
+
+        if(!data?.user){
+            toast('Login failed.',true);
+            return;
+        }
+
+        await loadProfile(data.user.id);
+
+    }catch(err){
+
+        console.error('Login error:',err);
+        toast(err.message||'Login failed.',true);
+
+    }finally{
+
+        if(btn){
+            btn.disabled=false;
+            btn.textContent=btn.dataset.originalText||'Login';
+        }
+
+    }
 
 }
-
-const {data,error}=await sb.auth.signInWithPassword({
-email,
-password
-});
-
-if(error){
-
-toast(error.message,true);
-return;
-
-}
-
-if(!data.user){
-
-toast('Login failed',true);
-return;
-
-}
-
-await loadProfile(data.user.id);
-
-}catch(err){
-
-console.error(err);
-toast(err.message,true);
-
-}
-
-}
-
 
 /* =========================================================
    LOAD PROFILE
