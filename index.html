@@ -1059,48 +1059,7 @@ async function register(){
                 .toUpperCase();
 
 
-        /* =========================
-           CREATE PROFILE
-        ========================= */
-
-        const {
-            error: profileError
-        } = await sb
-
-                device_id: deviceId,
-
-                referred_by: referredBy,
-
-                referral_code: referralCode,
-
-                referral_count: 0,
-
-                mining_rate: 0.25
-
-            });
-
-
-        /* =========================
-           PROFILE ERROR
-        ========================= */
-
-        if(profileError){
-
-            console.error(
-                'Profile creation error:',
-                profileError
-            );
-
-
-            toast(
-                'Account created, but profile setup failed. Please contact admin.',
-                true
-            );
-
-            return;
-        }
-
-
+       
         /* =========================
            UPDATE REFERRER
         ========================= */
